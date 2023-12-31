@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "Brian Vancil's blog"
+  description: "A blog about data science, programming, and reflection"
+  navbar:
+    right:
+      - about.qmd
+      - icon: mastodon
+        href: https://fosstodon.org/@bvancil
+      - icon: linkedin
+        href: https://www.linkedin.com/in/brianvancil/
+      - icon: github
+        href: https://github.com/bvancil
+format:
+  html:
+    theme:
+      light: zephyr
+      dark: cyborg
+    css: style/style.scss
+
+
+

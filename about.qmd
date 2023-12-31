@@ -1,0 +1,84 @@
+---
+title: "About"
+image: images/headshot.jpg
+image-alt: "Male-presenting human head with a goofy smile, handlebar moustache, beard, and bow tie"
+image-title: "Brian Vancil"
+about:
+  template: solana
+  links:
+    - icon: mastodon
+      text: Mastodon
+      href: https://fosstodon.org/@bvancil
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/brianvancil/
+    - icon: github
+      text: Github
+      href: https://github.com/bvancil
+
+---
+
+:::{#hero-heading}
+
+Brian Vancil is a data scientist at the [University of Kansas](https://aire.ku.edu/).
+
+## Things I...
+
+### Things I do at work
+
+- data science
+- data visualization
+- data cleaning and structuring
+- pay equity studies. These are mostly linear regressions for legal interpretability.
+- hierarchical time-series forecasting
+- [Git](https://git-scm.com/) for version control
+- [SAS](https://www.sas.com/) (base SAS 9.4) for data cleaning and analysis
+- [Tableau](https://www.tableau.com/) (Desktop and Server)
+- Oracle (database queries, Oracle Analytics Cloud (OAC), Oracle Business Intelligence Enterprise Edition (OBIEE), Data Visualization (DV))
+- [Quarto](https://quarto.org/) for reports and presentations. Yes, [you can use SAS with Quarto](https://github.com/bvancil/quarto-sas-example).
+- [Snakemake](https://snakemake.github.io/) for managing data pipelines
+- [Nuance Dragon Naturally Speaking Professional](https://shop.nuance.com/) augmented with [Natlink](https://github.com/dictation-toolbox/natlink),  [Dragonfly](https://github.com/dictation-toolbox/dragonfly), and [Caster](https://github.com/dictation-toolbox/Caster) for dictating code and building grammars
+- [AutoHotkey](https://www.autohotkey.com/) for combining with Caster to automate Windows interactions
+- [Python](https://www.python.org) mostly for scripting these days
+- [Sass: Syntactically Awesome Style Sheets](https://sass-lang.com/) and [Cascading Style Sheets (CSS)](https://www.w3.org/Style/CSS/Overview.en.html) for styling Quarto, SAS, and OAC
+- [TeX/LaTeX/XeLaTeX](https://www.tug.org/)/[MathJax](https://www.mathjax.org/) for typesetting mathematics
+- [Graphviz](https://graphviz.org/) and [Mermaid | Diagramming and charting tool](https://mermaid.js.org/) for diagrams
+
+### Things I used to do at work
+
+- [Stan](https://mc-stan.org/) for Bayesian hierarchical modeling
+- [R](https://www.r-project.org/) (package development, data pipelines, [Shiny](https://www.rstudio.com/products/shiny/) dashboards)
+- [Python](https://www.python.org) (data analysis, scripting, query generation)
+- [dbt](https://www.getdbt.com/) to manage an analytic reporting schema and data pipelines
+- [Asymptote](https://asymptote.sourceforge.io/) for creating diagrams for student worksheets
+
+You can see a variety of my teaching blog posts at [Earth and Not-Earth | Teaching Earth & Space Science through Modeling](https://earthandnot.wordpress.com/) and [Fock Physics | Building up physics learning one state at a time](https://fockphysics.wordpress.com/).
+
+### Things I do or have done for fun
+
+- Programming
+
+  - [Python](https://www.python.org)
+  - [R Statistical Programming Language](https://www.r-project.org/)
+  - [Haskell Language](https://www.haskell.org/)
+  - [Julia Programming Language](https://julialang.org/) (learning)
+  - [Rust Programming Language](https://www.rust-lang.org/) (learning)
+
+- Reading (mostly sci-fi and fantasy)
+- Growing native plants from seeds, including a few bonsai
+- Replacing our turf grass lawn with native habitat
+- Hiking
+- Steeping and drinking tea and tisanes
+
+## Education
+
+Washburn University | Topeka, Kansas
+Teacher licensure in 6-12 mathematics with secondary licenses in 6-8 science, Earth science, chemistry, and physics | 2009-2011
+
+Rutgers, The State University of New Jersey | New Brunswick/Piscataway, NJ
+MA in Physics and Astronomy | 2003 - 2007
+
+Leland Stanford Junior University | Stanford, CA
+BS in Physics and BS in Mathematics | 1998 - 2002
+
+:::
