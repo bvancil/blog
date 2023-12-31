@@ -19,6 +19,5 @@ format:
       light: zephyr
       dark: cyborg
     css: style/style.scss
-
-
-
+execute: 
+  freeze: auto
