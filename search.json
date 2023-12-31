@@ -1,10 +1,80 @@
 [
   {
+    "objectID": "LICENSE.html",
+    "href": "LICENSE.html",
+    "title": "Licenses for this repository",
+    "section": "",
+    "text": "All the files inside the posts and directory and all files with qmd or md or html extensions are licensed under CC BY-SA 4.0. The attribution requirement is only met when:\n\nThe canonical link is directed towards the original article, e.g. &lt;link rel=\"canonical\" href=\"https://bvancil.github.io/blog/about.html\" /&gt;\nThe following message is displayed above and below the article: This article has been originally published on &lt;a href=\"https://bvancil.github.io/blog/\"&gt;Brian Vancil's blog&lt;/a&gt;.\n\n\n\n\nAll the files inside source/img/photos directory are copyrighted to Brian Vancil. All rights reserved.\n\n\n\nI don’t know who has the copyrights for screenshots inside source/img/screenshots, so I don’t state any license for these files.\n\n\n\nAll the files inside source/img/logos directory are copyrighted to their respective companies.\n\n\n\nFiles not mentioned in previous paragraphs are licensed under the MIT License.\n\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n\n\n\nThis license file has been adapted from of Damian Nowak’s license file."
+  },
+  {
+    "objectID": "LICENSE.html#articles",
+    "href": "LICENSE.html#articles",
+    "title": "Licenses for this repository",
+    "section": "",
+    "text": "All the files inside the posts and directory and all files with qmd or md or html extensions are licensed under CC BY-SA 4.0. The attribution requirement is only met when:\n\nThe canonical link is directed towards the original article, e.g. &lt;link rel=\"canonical\" href=\"https://bvancil.github.io/blog/about.html\" /&gt;\nThe following message is displayed above and below the article: This article has been originally published on &lt;a href=\"https://bvancil.github.io/blog/\"&gt;Brian Vancil's blog&lt;/a&gt;."
+  },
+  {
+    "objectID": "LICENSE.html#images",
+    "href": "LICENSE.html#images",
+    "title": "Licenses for this repository",
+    "section": "",
+    "text": "All the files inside source/img/photos directory are copyrighted to Brian Vancil. All rights reserved."
+  },
+  {
+    "objectID": "LICENSE.html#screenshots",
+    "href": "LICENSE.html#screenshots",
+    "title": "Licenses for this repository",
+    "section": "",
+    "text": "I don’t know who has the copyrights for screenshots inside source/img/screenshots, so I don’t state any license for these files."
+  },
+  {
+    "objectID": "LICENSE.html#logos",
+    "href": "LICENSE.html#logos",
+    "title": "Licenses for this repository",
+    "section": "",
+    "text": "All the files inside source/img/logos directory are copyrighted to their respective companies."
+  },
+  {
+    "objectID": "LICENSE.html#other-files",
+    "href": "LICENSE.html#other-files",
+    "title": "Licenses for this repository",
+    "section": "",
+    "text": "Files not mentioned in previous paragraphs are licensed under the MIT License.\n\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+  },
+  {
+    "objectID": "LICENSE.html#references",
+    "href": "LICENSE.html#references",
+    "title": "Licenses for this repository",
+    "section": "",
+    "text": "This license file has been adapted from of Damian Nowak’s license file."
+  },
+  {
+    "objectID": "posts/welcome/index.html",
+    "href": "posts/welcome/index.html",
+    "title": "Welcome To My Blog",
+    "section": "",
+    "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
+  },
+  {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
     "section": "",
     "text": "Brian Vancil is a data scientist at the University of Kansas.\n\n\n\n\n\ndata science\ndata visualization\ndata cleaning and structuring\npay equity studies. These are mostly linear regressions for legal interpretability.\nhierarchical time-series forecasting\nGit for version control\nSAS (base SAS 9.4) for data cleaning and analysis\nTableau (Desktop and Server)\nOracle (database queries, Oracle Analytics Cloud (OAC), Oracle Business Intelligence Enterprise Edition (OBIEE), Data Visualization (DV))\nQuarto for reports and presentations. Yes, you can use SAS with Quarto.\nSnakemake for managing data pipelines\nNuance Dragon Naturally Speaking Professional augmented with Natlink, Dragonfly, and Caster for dictating code and building grammars\nAutoHotkey for combining with Caster to automate Windows interactions\nPython mostly for scripting these days\nSass: Syntactically Awesome Style Sheets and Cascading Style Sheets (CSS) for styling Quarto, SAS, and OAC\nTeX/LaTeX/XeLaTeX/MathJax for typesetting mathematics\nGraphviz and Mermaid | Diagramming and charting tool for diagrams\n\n\n\n\n\nStan for Bayesian hierarchical modeling\nR (package development, data pipelines, Shiny dashboards)\nPython (data analysis, scripting, query generation)\ndbt to manage an analytic reporting schema and data pipelines\nAsymptote for creating diagrams for student worksheets\n\nYou can see a variety of my teaching blog posts at Earth and Not-Earth | Teaching Earth & Space Science through Modeling and Fock Physics | Building up physics learning one state at a time.\n\n\n\n\nProgramming\n\nPython\nR Statistical Programming Language\nHaskell Language\nJulia Programming Language (learning)\nRust Programming Language (learning)\n\nReading (mostly sci-fi and fantasy)\nGrowing native plants from seeds, including a few bonsai\nReplacing our turf grass lawn with native habitat\nHiking\nSteeping and drinking tea and tisanes\n\n\n\n\n\nWashburn University | Topeka, Kansas Teacher licensure in 6-12 mathematics with secondary licenses in 6-8 science, Earth science, chemistry, and physics | 2009-2011\nRutgers, The State University of New Jersey | New Brunswick/Piscataway, NJ MA in Physics and Astronomy | 2003 - 2007\nLeland Stanford Junior University | Stanford, CA BS in Physics and BS in Mathematics | 1998 - 2002"
+  },
+  {
+    "objectID": "about.html#things-i",
+    "href": "about.html#things-i",
+    "title": "About",
+    "section": "",
+    "text": "data science\ndata visualization\ndata cleaning and structuring\npay equity studies. These are mostly linear regressions for legal interpretability.\nhierarchical time-series forecasting\nGit for version control\nSAS (base SAS 9.4) for data cleaning and analysis\nTableau (Desktop and Server)\nOracle (database queries, Oracle Analytics Cloud (OAC), Oracle Business Intelligence Enterprise Edition (OBIEE), Data Visualization (DV))\nQuarto for reports and presentations. Yes, you can use SAS with Quarto.\nSnakemake for managing data pipelines\nNuance Dragon Naturally Speaking Professional augmented with Natlink, Dragonfly, and Caster for dictating code and building grammars\nAutoHotkey for combining with Caster to automate Windows interactions\nPython mostly for scripting these days\nSass: Syntactically Awesome Style Sheets and Cascading Style Sheets (CSS) for styling Quarto, SAS, and OAC\nTeX/LaTeX/XeLaTeX/MathJax for typesetting mathematics\nGraphviz and Mermaid | Diagramming and charting tool for diagrams\n\n\n\n\n\nStan for Bayesian hierarchical modeling\nR (package development, data pipelines, Shiny dashboards)\nPython (data analysis, scripting, query generation)\ndbt to manage an analytic reporting schema and data pipelines\nAsymptote for creating diagrams for student worksheets\n\nYou can see a variety of my teaching blog posts at Earth and Not-Earth | Teaching Earth & Space Science through Modeling and Fock Physics | Building up physics learning one state at a time.\n\n\n\n\nProgramming\n\nPython\nR Statistical Programming Language\nHaskell Language\nJulia Programming Language (learning)\nRust Programming Language (learning)\n\nReading (mostly sci-fi and fantasy)\nGrowing native plants from seeds, including a few bonsai\nReplacing our turf grass lawn with native habitat\nHiking\nSteeping and drinking tea and tisanes"
+  },
+  {
+    "objectID": "about.html#education",
+    "href": "about.html#education",
+    "title": "About",
+    "section": "",
+    "text": "Washburn University | Topeka, Kansas Teacher licensure in 6-12 mathematics with secondary licenses in 6-8 science, Earth science, chemistry, and physics | 2009-2011\nRutgers, The State University of New Jersey | New Brunswick/Piscataway, NJ MA in Physics and Astronomy | 2003 - 2007\nLeland Stanford Junior University | Stanford, CA BS in Physics and BS in Mathematics | 1998 - 2002"
   },
   {
     "objectID": "index.html",
@@ -14,24 +84,10 @@
     "text": "Post With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nDec 29, 2023\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nDec 26, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "LICENSE.html",
-    "href": "LICENSE.html",
-    "title": "Licenses for this repository",
-    "section": "",
-    "text": "All the files inside the posts and directory and all files with qmd or md or html extensions are licensed under CC BY-SA 4.0. The attribution requirement is only met when:\n\nThe canonical link is directed towards the original article, e.g. &lt;link rel=\"canonical\" href=\"https://bvancil.github.io/blog/about.html\" /&gt;\nThe following message is displayed above and below the article: This article has been originally published on &lt;a href=\"https://bvancil.github.io/blog/\"&gt;Brian Vancil's blog&lt;/a&gt;.\n\n\n\n\nAll the files inside source/img/photos directory are copyrighted to Brian Vancil. All rights reserved.\n\n\n\nI don’t know who has the copyrights for screenshots inside source/img/screenshots, so I don’t state any license for these files.\n\n\n\nAll the files inside source/img/logos directory are copyrighted to their respective companies.\n\n\n\nFiles not mentioned in previous paragraphs are licensed under the MIT License.\n\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n\n\n\nThis license file has been adapted from of Damian Nowak’s license file."
-  },
-  {
     "objectID": "posts/post-with-code/index.html",
     "href": "posts/post-with-code/index.html",
     "title": "Post With Code",
     "section": "",
     "text": "This is a post with executable code."
-  },
-  {
-    "objectID": "posts/welcome/index.html",
-    "href": "posts/welcome/index.html",
-    "title": "Welcome To My Blog",
-    "section": "",
-    "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
   }
 ]

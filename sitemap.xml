@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://bvancil.github.io/blog/about.html</loc>
-    <lastmod>2023-12-31T23:26:47.636Z</lastmod>
+    <loc>https://github.com/bvancil/blog/LICENSE.html</loc>
+    <lastmod>2023-12-31T23:33:49.045Z</lastmod>
   </url>
   <url>
-    <loc>https://bvancil.github.io/blog/index.html</loc>
-    <lastmod>2023-12-31T23:26:48.072Z</lastmod>
+    <loc>https://github.com/bvancil/blog/posts/welcome/index.html</loc>
+    <lastmod>2023-12-31T23:33:48.489Z</lastmod>
   </url>
   <url>
-    <loc>https://bvancil.github.io/blog/LICENSE.html</loc>
-    <lastmod>2023-12-31T23:26:48.441Z</lastmod>
+    <loc>https://github.com/bvancil/blog/about.html</loc>
+    <lastmod>2023-12-31T23:33:47.221Z</lastmod>
   </url>
   <url>
-    <loc>https://bvancil.github.io/blog/posts/post-with-code/index.html</loc>
-    <lastmod>2023-12-31T23:26:48.794Z</lastmod>
+    <loc>https://github.com/bvancil/blog/index.html</loc>
+    <lastmod>2023-12-31T23:33:48.225Z</lastmod>
   </url>
   <url>
-    <loc>https://bvancil.github.io/blog/posts/welcome/index.html</loc>
-    <lastmod>2023-12-31T23:26:49.139Z</lastmod>
+    <loc>https://github.com/bvancil/blog/posts/post-with-code/index.html</loc>
+    <lastmod>2023-12-31T23:33:48.753Z</lastmod>
   </url>
 </urlset>
