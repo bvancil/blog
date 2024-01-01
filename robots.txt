@@ -1,1 +1,1 @@
-Sitemap: https://github.com/bvancil/blog/sitemap.xml
+Sitemap: https://bvancil.github.io/blog/sitemap.xml
