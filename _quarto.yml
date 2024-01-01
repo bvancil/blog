@@ -3,10 +3,23 @@ project:
 
 website:
   title: "Brian Vancil's blog"
+  site-url: https://bvancil.github.io/blog/
   description: "A blog about data science, programming, and reflection"
+  open-graph:
+    locale: en_US
+  cookie-consent:
+    type: express
+  comments:
+    utterances: 
+      repo: bvancil/blog
+      theme: github-dark
+      label: comment
+      issue-term: pathname
   navbar:
     right:
       - about.qmd
+      - icon: rss
+        href: index.xml
       - icon: mastodon
         href: https://fosstodon.org/@bvancil
       - icon: linkedin
