@@ -10,47 +10,50 @@
 <atom:link href="https://bvancil.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>A blog about data science, programming, and reflection</description>
 <generator>quarto-1.3.450</generator>
-<lastBuildDate>Fri, 29 Dec 2023 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 01 Jan 2024 00:00:00 GMT</lastBuildDate>
 <item>
-  <title>Post With Code</title>
-  <dc:creator>Harlow Malloc</dc:creator>
-  <link>https://bvancil.github.io/blog/posts/post-with-code/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>This is a post with executable code.</p>
-
-
-
- ]]></description>
-  <category>news</category>
-  <category>code</category>
-  <category>analysis</category>
-  <guid>https://bvancil.github.io/blog/posts/post-with-code/index.html</guid>
-  <pubDate>Fri, 29 Dec 2023 00:00:00 GMT</pubDate>
-  <media:content url="https://bvancil.github.io/blog/posts/post-with-code/image.jpg" medium="image" type="image/jpeg"/>
-</item>
-<item>
-  <title>Welcome To My Blog</title>
-  <dc:creator>Tristan O&#39;Malley</dc:creator>
+  <title>Welcome to my blog</title>
+  <dc:creator>Brian Vancil</dc:creator>
   <link>https://bvancil.github.io/blog/posts/welcome/index.html</link>
   <description><![CDATA[ 
 
 
 
 
-<p>This is the first post in a Quarto blog. Welcome!</p>
-<p><img src="https://bvancil.github.io/blog/posts/welcome/thumbnail.jpg" class="img-fluid"></p>
-<p>Since this post doesn’t specify an explicit <code>image</code>, the first image in the post will be used in the listing page of posts.</p>
+<p>Welcome to the first post in a <a href="https://quarto.org/">Quarto</a> blog!</p>
+<p>I don’t really know what will come of this, but you can preview some of the topics that I may develop into new posts on my <a href="../../about.html">About</a> page. Please comment here if there are particular topics that you want me to cover earlier.</p>
 
 
 
  ]]></description>
   <category>news</category>
   <guid>https://bvancil.github.io/blog/posts/welcome/index.html</guid>
-  <pubDate>Tue, 26 Dec 2023 00:00:00 GMT</pubDate>
+  <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>My ideal workflow managament system with an eye toward data science</title>
+  <dc:creator>Brian Vancil</dc:creator>
+  <link>https://bvancil.github.io/blog/posts/workflow-requirements/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">Background</h2>
+<p>In data science, we are used to thinking about data pipelines as directed acyclic graphs (DAGs) that define data processing or modeling steps. Because some steps are computationally intensive, we want each step to be up-to-date with the minimum of re-computation. The success of <a href="https://en.wikipedia.org/wiki/Workflow_management_system">workflow management systems</a> (sometimes called build tools or pipeline tools) such as <a href="https://airflow.apache.org/">Apache Airflow</a>, <a href="https://snakemake.github.io/">Snakemake</a>, and <a href="https://docs.ropensci.org/targets/">targets</a> are rightfully inspiring, but I think we can do even better with our tooling. In this blog post, I outline features of such systems that I find enhance productivity. In later posts I plan to evaluate various tools for how well they conform to these ideals, and I’ll update the end of this article to refer to the systems I review.</p>
+</section>
+<section id="features-that-i-like" class="level2">
+<h2 class="anchored" data-anchor-id="features-that-i-like">Features that I like</h2>
+
+
+</section>
+
+ ]]></description>
+  <category>data_science</category>
+  <category>workflow</category>
+  <guid>https://bvancil.github.io/blog/posts/workflow-requirements/index.html</guid>
+  <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>

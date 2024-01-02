@@ -2,22 +2,26 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://bvancil.github.io/blog/LICENSE.html</loc>
-    <lastmod>2024-01-01T00:01:22.143Z</lastmod>
+    <lastmod>2024-01-02T03:09:21.218Z</lastmod>
   </url>
   <url>
     <loc>https://bvancil.github.io/blog/posts/welcome/index.html</loc>
-    <lastmod>2024-01-01T00:01:21.567Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bvancil.github.io/blog/about.html</loc>
-    <lastmod>2024-01-01T00:01:20.291Z</lastmod>
+    <lastmod>2024-01-02T03:09:20.622Z</lastmod>
   </url>
   <url>
     <loc>https://bvancil.github.io/blog/index.html</loc>
-    <lastmod>2024-01-01T00:01:21.299Z</lastmod>
+    <lastmod>2024-01-02T03:09:20.050Z</lastmod>
   </url>
   <url>
-    <loc>https://bvancil.github.io/blog/posts/post-with-code/index.html</loc>
-    <lastmod>2024-01-01T00:01:21.839Z</lastmod>
+    <loc>https://bvancil.github.io/blog/about.html</loc>
+    <lastmod>2024-01-02T03:09:19.038Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bvancil.github.io/blog/license-blog.html</loc>
+    <lastmod>2024-01-02T03:09:20.346Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bvancil.github.io/blog/posts/workflow-requirements/index.html</loc>
+    <lastmod>2024-01-02T03:09:20.910Z</lastmod>
   </url>
 </urlset>

@@ -51,9 +51,16 @@
   {
     "objectID": "posts/welcome/index.html",
     "href": "posts/welcome/index.html",
-    "title": "Welcome To My Blog",
+    "title": "Welcome to my blog",
     "section": "",
-    "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
+    "text": "Welcome to the first post in a Quarto blog!\nI don’t really know what will come of this, but you can preview some of the topics that I may develop into new posts on my About page. Please comment here if there are particular topics that you want me to cover earlier."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "blog",
+    "section": "",
+    "text": "Welcome to my blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nJan 1, 2024\n\n\nBrian Vancil\n\n\n\n\n\n\n  \n\n\n\n\nMy ideal workflow managament system with an eye toward data science\n\n\n\n\n\n\n\ndata_science\n\n\nworkflow\n\n\n\n\n\n\n\n\n\n\n\nJan 1, 2024\n\n\nBrian Vancil\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -77,17 +84,59 @@
     "text": "Washburn University | Topeka, Kansas Teacher licensure in 6-12 mathematics with secondary licenses in 6-8 science, Earth science, chemistry, and physics | 2009-2011\nRutgers, The State University of New Jersey | New Brunswick/Piscataway, NJ MA in Physics and Astronomy | 2003 - 2007\nLeland Stanford Junior University | Stanford, CA BS in Physics and BS in Mathematics | 1998 - 2002"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "blog",
+    "objectID": "license-blog.html",
+    "href": "license-blog.html",
+    "title": "Licenses for this blog",
     "section": "",
-    "text": "Post With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nDec 29, 2023\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nDec 26, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
+    "text": "All the pages and articles are licensed under CC BY-SA 4.0. The attribution requirement is only met when:\n\nThe canonical link is directed towards the original article, e.g. &lt;link rel=\"canonical\" href=\"https://bvancil.github.io/blog/about.html\" /&gt;\nThe following message is displayed above and below the article: This article has been originally published on &lt;a href=\"https://bvancil.github.io/blog/\"&gt;Brian Vancil's blog&lt;/a&gt;."
   },
   {
-    "objectID": "posts/post-with-code/index.html",
-    "href": "posts/post-with-code/index.html",
-    "title": "Post With Code",
+    "objectID": "license-blog.html#articles",
+    "href": "license-blog.html#articles",
+    "title": "Licenses for this blog",
     "section": "",
-    "text": "This is a post with executable code."
+    "text": "All the pages and articles are licensed under CC BY-SA 4.0. The attribution requirement is only met when:\n\nThe canonical link is directed towards the original article, e.g. &lt;link rel=\"canonical\" href=\"https://bvancil.github.io/blog/about.html\" /&gt;\nThe following message is displayed above and below the article: This article has been originally published on &lt;a href=\"https://bvancil.github.io/blog/\"&gt;Brian Vancil's blog&lt;/a&gt;."
+  },
+  {
+    "objectID": "license-blog.html#images",
+    "href": "license-blog.html#images",
+    "title": "Licenses for this blog",
+    "section": "Images",
+    "text": "Images\nLogos not of one of the following types are copyrighted to Brian Vancil. All rights reserved.\n\nScreenshots\nI don’t know who has the copyrights for screenshots, so I don’t state any license for these files.\n\n\nLogos\nAll the logos are copyrighted to their respective companies."
+  },
+  {
+    "objectID": "license-blog.html#other-files",
+    "href": "license-blog.html#other-files",
+    "title": "Licenses for this blog",
+    "section": "Other files",
+    "text": "Other files\nFiles not mentioned in previous paragraphs, including source code snippets within pages and posts, are licensed under the MIT License.\n\nMIT License\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+  },
+  {
+    "objectID": "license-blog.html#references",
+    "href": "license-blog.html#references",
+    "title": "Licenses for this blog",
+    "section": "References",
+    "text": "References\nThis license file has been adapted from of Damian Nowak’s license file."
+  },
+  {
+    "objectID": "posts/workflow-requirements/index.html",
+    "href": "posts/workflow-requirements/index.html",
+    "title": "My ideal workflow managament system with an eye toward data science",
+    "section": "",
+    "text": "In data science, we are used to thinking about data pipelines as directed acyclic graphs (DAGs) that define data processing or modeling steps. Because some steps are computationally intensive, we want each step to be up-to-date with the minimum of re-computation. The success of workflow management systems (sometimes called build tools or pipeline tools) such as Apache Airflow, Snakemake, and targets are rightfully inspiring, but I think we can do even better with our tooling. In this blog post, I outline features of such systems that I find enhance productivity. In later posts I plan to evaluate various tools for how well they conform to these ideals, and I’ll update the end of this article to refer to the systems I review."
+  },
+  {
+    "objectID": "posts/workflow-requirements/index.html#background",
+    "href": "posts/workflow-requirements/index.html#background",
+    "title": "My ideal workflow managament system with an eye toward data science",
+    "section": "",
+    "text": "In data science, we are used to thinking about data pipelines as directed acyclic graphs (DAGs) that define data processing or modeling steps. Because some steps are computationally intensive, we want each step to be up-to-date with the minimum of re-computation. The success of workflow management systems (sometimes called build tools or pipeline tools) such as Apache Airflow, Snakemake, and targets are rightfully inspiring, but I think we can do even better with our tooling. In this blog post, I outline features of such systems that I find enhance productivity. In later posts I plan to evaluate various tools for how well they conform to these ideals, and I’ll update the end of this article to refer to the systems I review."
+  },
+  {
+    "objectID": "posts/workflow-requirements/index.html#features-that-i-like",
+    "href": "posts/workflow-requirements/index.html#features-that-i-like",
+    "title": "My ideal workflow managament system with an eye toward data science",
+    "section": "Features that I like",
+    "text": "Features that I like"
   }
 ]
