@@ -26,6 +26,12 @@ website:
         href: https://www.linkedin.com/in/brianvancil/
       - icon: github
         href: https://github.com/bvancil
+  page-footer:
+    center:
+      - text: "About"
+        href: about.qmd
+      - text: "License"
+        href: license-blog.qmd
 format:
   html:
     theme:

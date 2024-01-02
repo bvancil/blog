@@ -1,0 +1,13 @@
+---
+title: "My ideal workflow managament system with an eye toward data science"
+author: "Brian Vancil"
+date: "2024-01-01"
+categories: [data_science, workflow]
+---
+
+## Background
+
+In data science, we are used to thinking about data pipelines as directed acyclic graphs (DAGs) that define data processing or modeling steps. Because some steps are computationally intensive, we want each step to be up-to-date with the minimum of re-computation. The success of [workflow management systems](https://en.wikipedia.org/wiki/Workflow_management_system) (sometimes called build tools or pipeline tools) such as [Apache Airflow](https://airflow.apache.org/), [Snakemake](https://snakemake.github.io/), and [targets](https://docs.ropensci.org/targets/) are rightfully inspiring, but I think we can do even better with our tooling. In this blog post, I outline features of such systems that I find enhance productivity. In later posts I plan to evaluate various tools for how well they conform to these ideals, and I'll update the end of this article to refer to the systems I review.
+
+## Features that I like
+
