@@ -1,0 +1,164 @@
+---
+title: "Estimating population mean from a list of min-mean-max group values"
+author: "Brian Vancil"
+date: "2024-03-23"
+categories: [data_science, order_statistics, inference, mean, minimum, maximum]
+kernel: sagemath
+---
+
+## Problem
+
+One simpler problem at the heart of [our original problem](../estimating-population-mean-variance-from-min-mean-max/) is that of finding the most efficient estimator for the population mean of a random variable $X$ given $G$ i.i.d. groups of samples, for each $g\in G$ of size $N_g$: $X_{g1},\ldots, X_{gN_g}\sim X$ i.i.d. We write $X_{g\bullet}$ as a shorthand for this set. However, we only have access to the summary data:
+
+$$
+\begin{aligned}
+N_g &= \# X_{g\bullet} \\
+m_g &= \min X_{g\bullet} \\
+\bar{X}_g &= \text{mean}\,X_{g\bullet} \\
+M_g &= \max X_{g\bullet}
+\end{aligned}
+$$
+
+Without the information on $m_g$ and $M_g$, $\bar{X}_g$ is clearly the best estimator for $\mu=E[X]$, but given this extra knowledge, can we do better? For instance, when is the modified mean (mean discarding the minimum and maximum) a better estimator? In our case, the modified mean is, when $N_g > 2$,
+
+$$
+\begin{aligned}
+\bar{X}^{\text{mod}}_g = \frac{N_g \bar{X}_g - m_g - M_g}{N_g - 2}
+\end{aligned}
+$$
+
+## An even simpler formulation
+
+We could ask the problem for a single group $G=1$, in which case we dispense with the extra $g$-subscripts. Before we take $N>2$ for the general case, we can even consider the simpler cases of $N=1$ and $N=2$.
+
+## $G=1$ case
+
+### $N=1$ case
+
+Here there is really no question. Our best estimate of $\mu$ is $\bar{X} = m = M$.
+
+### $N=2$ case
+
+With only two data points, we have still very little information, and $\bar{X}$ is our best estimate.
+
+### $N=3$ case
+
+In this case, our modified mean is $y=x_2$, and for $x_1\le y\le x_3$,
+
+$$
+f(x_1, y, x_3) = 3! dx_1 dx_3 dy.
+$$
+
+We first compute
+
+$$
+\begin{aligned}
+f(X_{(1)}=x_1, X_{(3)}=x_3) &= 3! f(x_1) f(x_3) \int_{x_1}^{x_3} dy f(y) \\
+&= 3! f(x_1) f(x_3) \cdot \left( F(x_3) - F(x_1-) \right) \\
+&= Z,
+\end{aligned}
+$$
+
+where, by $F(x_1-)$ we mean the limit from the left, and where, in the last step, we have defined the normalizing factor $Z$ for the conditional probability distribution.
+
+$$
+\begin{aligned}
+f(Y=y|X_{(1)}=x_1, X_{(3)}=x_3) &= Z^{-1} 3! f(x_1)f(x_2) dy f(y) \\
+&= \frac{1}{F(x_3) - F(x_1-)} dy f(y)
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+E[Y|X_{(1)}=x_1, X_{(3)}=x_3] &= \frac{1}{F(x_3) - F(x_1-)} \int_{x_1}^{x_3} dy f(y) y\\
+&= E[X|X\in[x_1, x_3]].
+\end{aligned}
+$$
+
+In this case the modified mean has the truncated distribution $Y\sim X\vert_{[x_1, x_3]}$. 
+
+We know that $Y$ is biased, since in general,
+
+$$
+\begin{aligned}
+0 &\ne E[Y] - E[X] = \frac{1}{F(x_3) - F(x_1-)} \int_{x_1}^{x_3} dy f(y) y - \int_{-\infty}^{\infty} dx f(x) x \\
+&= \left(\frac{1}{F(x_3) - F(x_1-)} - 1\right)\int_{x_1}^{x_3} dy f(y) y - \left(\int_{-\infty}^{x_1-} + \int_{x_3+}^{\infty} \right) dx f(x) x
+\end{aligned}
+$$
+
+We know that $\text{Var}(\bar{X}) = \frac{\text{Var}(X)}{3}$. How does $\text{Var}(Y)$ compare?
+
+$$
+\begin{aligned}
+\text{Var}(X) &= E[X^2] - E[Y]^2 \\
+&= \int_{-\infty}^{\infty} dy f(y) y^2 - \left(\int_{-\infty}^{\infty} dy f(y) y \right)^2
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+\text{Var}(Y) &= E[Y^2] - E[Y]^2 \\
+&= \frac{1}{F(x_3) - F(x_1-)} \int_{x_1}^{x_3} dy f(y) y^2 - \left(\frac{1}{F(x_3) - F(x_1-)} \int_{x_1}^{x_3} dy f(y) y \right)^2
+\end{aligned}
+$$
+
+We can connect these two expressions with the function
+
+$$
+\begin{aligned}
+\phi(a,b) &= \frac{I_2(a,b)}{I_0(a,b)} - \left( \frac{I_1(a,b)}{I_0(a,b)} \right)^2,
+\end{aligned}
+$$
+
+where $I_k(a, b) = \int_a^b du\, f(u) u^k$.
+
+$$
+\begin{aligned}
+\frac{\partial\phi}{\partial b}(a,b) &= \frac{f(b)}{I_0(a,b)}
+    \left(
+        \left( b-(\mu(a,b) - \sigma(a,b)) \right)
+        \left( b-(\mu(a,b) + \sigma(a,b)) \right)
+    \right),
+\end{aligned}
+$$
+
+where
+
+$$
+\begin{aligned}
+\mu(a,b) &= \frac{I_1(a,b)}{I_0(a,b)} \\
+\sigma(a,b) &= \sqrt{\frac{I_2(a,b)}{I_0(a,b)}-\left(\frac{I_1(a,b)}{I_0(a,b)} \right)^2}.
+\end{aligned}
+$$
+
+So, this value is positive for $b > \mu(a,b) + \sigma(a,b)$ but negative for $b$ between the roots $\mu(a,b)\pm\sigma(a,b)$, so we cannot use uniformity in sign of the derivative to conclude that one endpoint is greater than the other.
+
+### $N\ge 3$ case
+
+Given the results from [our previous dalliance in this topic](../estimating-population-mean-variance-from-min-mean-max/), we know that the joint distribution for the order statistics $X_{(1)}, \ldots, X_{(N)}$ is given by (where we regard $f=f_X$ as a distribution to account for the mixed discrete/continuous cases)
+
+$$
+f(x_1, \ldots, x_N) = N! \prod\limits_{k=1}^{N} f(x_k),
+$$
+
+where $x_1\le \ldots \le x_N$. We try to use this to derive an expression for the joint distribution of $X_{(1)}$, $\bar{X}^{\text{mod}}$, and $X_{(N)}$, where as alluded to earlier, 
+
+$$
+\bar{X}^{\text{mod}} = \frac{1}{N-2}\sum\limits_{k=2}^{N-1} X_{(k)}.
+$$
+
+Defining $y = \frac{1}{N-2}\sum\limits_{k=2}^{N-1} x_k$, try to define, for $x_1\le y \le x_N$,
+
+$$
+\begin{aligned}
+f(x_1, y, x_N) dx_1 dy\, dx_N &= N! dx_1 f(x_1) dx_N f(x_N) dy \int\limits_{x_1\le\ldots\le x_N} \left(\prod\limits_{k=2}^{N-1} dx_k f(x_k)\right)  \delta\left(y- \frac{1}{N-2}\sum\limits_{k=2}^{N-1} x_k\right)
+\end{aligned}
+$$
+
+#### $N=4$ case
+
+
+
+
+
+

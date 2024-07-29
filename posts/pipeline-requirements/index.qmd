@@ -1,0 +1,57 @@
+---
+title: "My ideal data pipeline workflow managament system"
+author: "Brian Vancil"
+date: "2024-01-02"
+categories: [data_science, workflow]
+---
+
+## Background
+
+In data science, we are used to thinking about data pipelines as directed acyclic graphs (DAGs) that define data processing or modeling steps. Because some steps are computationally intensive, we want each step to be up-to-date with the minimum of re-computation. The success of [workflow management systems](https://en.wikipedia.org/wiki/Workflow_management_system) (sometimes called build tools or pipeline tools) such as [Apache Airflow](https://airflow.apache.org/), [Snakemake](https://snakemake.github.io/), and [targets](https://docs.ropensci.org/targets/) are rightfully inspiring, but I think we can do even better with our tooling. In this blog post, I outline features of such systems that I find enhance productivity. In later posts I plan to evaluate various tools for how well they conform to these ideals, and I'll update the end of this article to refer to the systems I review.
+
+## Prior art
+
+- [What is a Data Pipeline (and 7 Must-Have Features of Modern Data Pipelines) - Striim](https://www.striim.com/blog/what-is-a-data-pipeline-and-must-have-features-of-modern-data-pipelines/)
+
+## Features that I like
+
+- Rerunability/checkpointing/idempotence
+- Automatic caching of results
+- Multiple modes of operation (mtime (like Make), mtime+checksums, etc.)
+- Easy to build DAG
+- Depend directly on code abstract syntax tree
+- Multi-language
+- Result history
+- Introspection/transparency/monitoring/alerting of run results
+- Cross platform
+- Scalable
+- Configuration as data
+
+
+```{mermaid}
+%%| label: fig-example-pipeline
+%%| fig-cap: "A simplified data pipeline showing artifacts (circles) and processes (diamonds) for a report"
+flowchart LR
+    sA((Source A)) --> rA{Read A}
+    sB((Source B)) --> rB{Read B}
+    rA --> eA((Extract A))
+    rB --> eB((Extract B))
+    eA --> j{Join A+B}
+    eB --> j
+    j --> ds((Dataset))
+    ds --> split{Train/Test Split}
+    split --> train((Training set))
+    split --> test((Testing set))
+    train --> m1{Model 1}
+    train --> m2{Model 2}
+    m1 --> m1s((Stored model 1))
+    m2 --> m2s((Stored model 2))
+    test --> eval{Evaluation}
+    m1s --> eval
+    m2s --> eval
+    eval --> em((Evaluation metrics))
+    sReport((Report source)) --> r{Compile}
+    em --> r
+    train --> r
+    r --> report((Report))
+```

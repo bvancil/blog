@@ -1,0 +1,260 @@
+---
+title: "Probabilistic workflow using Stan"
+author: "Brian Vancil"
+date: "2024-06-30"
+categories: [data_science, Stan, workflow]
+kernel: julia
+---
+
+To illustrate workflow with Stan and Julia, let's consider a situation in which salaries are based, imperfectly, on a number of latent talents. Additionally, let us assume that there are some underlying biases on the basis of protected characteristics, like sex and race/ethnicity. Let us see how sensitive our regression methods are to discovering these biases.
+
+We load a number of Julia packages to process tabular data, work with random distributions, etc.
+
+```{julia}
+# packages
+using DataFrames
+using DataFramesMeta
+using Distributions
+# built-in packages
+using Random
+```
+
+## Generating synthetic data
+
+### Generating parameters
+
+We use $N$ for the number of individuals with salaries and $G$ for the number of groups (think: departments or job classes).
+
+```{julia}
+N = 1000
+G = 20
+```
+
+We generate the sizes of each department by using a categorical distribution where the probabilities are normalized from draws from the uniform distribution. For each $g = 1, \ldots, G$,
+
+$$
+\begin{aligned}
+P_g &\sim \text{Uniform}(0, 1) \\
+p_g &= \frac{P_g}{\sum\limits_h P_h}.
+\end{aligned}
+$$
+
+```{julia}
+Random.seed!(20240721)
+
+P_group = rand(Uniform(), G)
+p_group = P_group ./ sum(P_group)
+```
+
+Without loss of generality, we sort these by renumbering the groups.
+
+```{julia}
+p_group = reverse(sort(p_group))
+```
+
+It's time to start considering the group parameters as a data frame.
+
+```{julia}
+group_params = DataFrame(id_group = 1:G, p_group = p_group)
+```
+
+We can add more parameters as necessary. Since we imagine salary to be log-normally distributed, with a distribution that may differ by group, we set mu and sigma, through the CV (coefficient of variation), for each group.
+
+```{julia}
+transform!(group_params, [] => (() -> rand(Uniform(10.3, 12.8), G)) => :μ)
+transform!(group_params, [] => (() -> rand(Uniform(0.03, 0.15), G)) => :cv)
+transform!(group_params, [:μ, :cv] => ((μ, cv) -> μ .* cv) => :σ)
+```
+
+We can also calculate the exponentiated mean, median, mode, standard deviation, etc.
+
+```{julia}
+transform!(group_params, [:μ] => ((μ) -> exp.(μ)) => :median)
+transform!(group_params, [:μ, :σ] => ((μ, σ) -> exp.(μ .- σ.^2)) => :mode)
+transform!(group_params, [:μ, :σ] => ((μ, σ) -> exp.(μ .+ 0.5.*σ.^2)) => :mean)
+transform!(group_params, [:mean, :σ] => ((mean, σ) -> mean .* sqrt.(exp.(σ.^2) .- 1)) => :std_dev)
+transform!(group_params, [:σ] => ((σ) -> (exp.(σ.^2) .+ 2) .* sqrt.(exp.(σ.^2) .- 1)) => :skewness)
+transform!(group_params, [:σ] => ((σ) -> (exp.(4 .* σ.^2) .+ 2 .* exp.(3 .* σ.^2) .+ 3 .* exp.(2 .* σ.^2) .- 6)) => :excess_kurtosis)
+```
+
+We can then assign all $N$ individuals to groups, similarly renumbering them to order by group.
+
+```{julia}
+group = rand(Categorical(p_group), N)
+group = sort(group)
+```
+
+We begin to assemble this into a data frame.
+
+```{julia}
+individual_parameters = DataFrame(id_group = group)
+```
+
+How many latent skills should we include? Let's call that number $S$.
+
+```{julia}
+S = 5
+skill_names = [Symbol("skill_$i") for i in 1:S]
+```
+
+```{julia}
+skills_data = rand(Normal(), (N, S))
+```
+
+```{julia}
+insertcols!(individual_parameters, (skill_names .=> eachcol(skills_data))...)
+```
+
+### Cleaning up: Assembling private parameters into a function
+
+Scripts are nice for testing things, but we should refactor our code into a function so that we can run many possible scenarios. Here's the basic architecture:
+
+```{mermaid}
+---
+title: Data flow
+---
+flowchart LR
+    n_skills --> universal_parameters
+    n_groups --> group_parameters
+    universal_parameters --> group_parameters
+    group_parameters --> private_parameters
+    n_people --> private_parameters
+    private_parameters --> public_parameters
+    n_observable_skills --> public_parameters
+    skill_noise --> public_parameters
+    salary_noise --> public_parameters
+```
+
+```{julia}
+# Returns parameters governing all observation
+function universal_parameters(n_skills)
+    universal_params = DataFrame(
+        μ_lo = 10.3,
+        μ_hi = 12.8,
+        cv_lo = 0.03,
+        cv_hi = 0.15,
+        n_skills = n_skills
+    )
+    β_names = [Symbol("β_skill_$i") for i in 1:n_skills]
+    β = rand(Normal(), (1, n_skills))
+    insertcols!(universal_params, (β_names .=> eachcol(β))...)
+end
+
+# Returns group parameters for n_groups, sorted in reverse by frequency
+function group_parameters(n_groups, universal_params)
+    relative_group_frequency = rand(Uniform(), n_groups)
+    # Normalize to get probabilities
+    group_probabilities = relative_group_frequency ./ sum(relative_group_frequency)
+    group_probabilities = reverse(sort(group_probabilities))
+    group_params = DataFrame(id_group = 1:n_groups, p_group = group_probabilities)
+    group_params = crossjoin(group_params, universal_params)
+    transform!(group_params, [:μ_lo, :μ_hi] => ((μ_lo, μ_hi) -> rand.(Uniform.(μ_lo, μ_hi), 1) |> Iterators.flatten |> collect) => :μ)
+    transform!(group_params, [:cv_lo, :cv_hi] => ((cv_lo, cv_hi) -> rand.(Uniform.(cv_lo, cv_hi), 1) |> Iterators.flatten |> collect) => :cv)
+    transform!(group_params, [:μ, :cv] => ((μ, cv) -> μ .* cv) => :σ)
+    transform!(group_params, [:μ] => ((μ) -> exp.(μ)) => :median)
+    transform!(group_params, [:μ, :σ] => ((μ, σ) -> exp.(μ .- σ.^2)) => :mode)
+    transform!(group_params, [:μ, :σ] => ((μ, σ) -> exp.(μ .+ 0.5.*σ.^2)) => :mean)
+    transform!(group_params, [:mean, :σ] => ((mean, σ) -> mean .* sqrt.(exp.(σ.^2) .- 1)) => :std_dev)
+    transform!(group_params, [:σ] => ((σ) -> (exp.(σ.^2) .+ 2) .* sqrt.(exp.(σ.^2) .- 1)) => :skewness)
+    transform!(group_params, [:σ] => ((σ) -> (exp.(4 .* σ.^2) .+ 2 .* exp.(3 .* σ.^2) .+ 3 .* exp.(2 .* σ.^2) .- 6)) => :excess_kurtosis)
+    group_params
+end
+
+# Generates groups from parameters and number of people
+function groups(group_params, n_people)
+    group = rand(Categorical(group_params[!, :p_group]), n_people)
+    group = sort(group)
+    DataFrame(id_group = group)
+end
+
+function skills(n_skills, n_people)
+    skill_names = [Symbol("skill_$i") for i in 1:n_skills]
+    skill_data = rand(Normal(), (n_people, n_skills))
+    DataFrame(skill_data, skill_names)
+end
+
+function private_parameters(n_people, group_params)
+    n_skills = min(group_params(:, :n_skills))
+    private_params = groups(group_params, n_people)
+    DataFrames.hcat!(private_params, skills(n_skills, n_people))
+    private_params = innerjoin(private_params, group_params, on=:id_group)
+    
+    μ = private_params[:, :μ]
+    β_skill = Matrix(select(private_params, Cols(x -> startswith(x, "β_skill_"))))'[:, 1]
+    X_skill = Matrix(select(private_params, Cols(x -> startswith(x, "skill_"))))
+    expected_log_salary = μ + X_skill * β_skill
+    σ = private_params[:, :σ]
+    log_salary = [rand(Normal(μ1, σ1)) for (μ1 , σ1) in zip(expected_log_salary, σ)]
+
+    insertcols!(private_params, :expected_log_salary => expected_log_salary, :log_salary => log_salary)
+    private_params
+end
+
+function public_parameters(private_params, n_observable_skills, skill_noise, salary_noise)
+    n_people = nrow(private_params)
+    observable_skill_names = [Symbol("skill_$i") for i in 1:n_observable_skills]
+    public_params = select(private_params, :id_group, observable_skill_names..., :log_salary)
+    # add noise
+    transform!(public_params, [:log_salary] => (s -> s .+ rand(Normal(0, salary_noise), n_people)) => :log_salary)
+    transform!(public_params, observable_skill_names .=> Ref(s -> s .+ rand(Normal(0, skill_noise), n_people)) .=> observable_skill_names)
+    public_params
+end
+
+S = 5
+universal_params = universal_parameters(S)
+G = 3
+group_params = group_parameters(G, universal_params)
+N = 10
+private_params = private_parameters(N, S, group_params)
+s = 3
+public_params = public_parameters(private_params, s, 0.1, 0)
+```
+
+Here, we have imagined $\forall i\in\lbrace 1\ldots N\rbrace$, where $g(i)$ is the group of the $i\text{th}$ person. 
+
+$$
+\log \text{Salary}_{i} \sim \text{Normal}(\mu_{g(i)} + \sum\limits_{j=1}^{S} \text{Skill}_{ij}\beta_j, \sigma^2_{g(i)})
+$$
+
+Only some of the skills ($s$ of $S$) are measured, and these with Gaussian noise `skill_noise`. Optionally, one can add in `salary_noise`, but we give the HR team the benefit of the doubt in assigning salary.
+
+
+
+```{julia}
+insertcols!(public_skill_data)
+```
+
+
+
+
+
+```{stan}
+data {
+    // Number of observations
+    int<lower=0> N;
+    // Number of latent explanatory features
+    int<lower=0> P;
+    // Number of groups
+    int<lower=0> G;
+    // Size of fuzz
+    real<lower=0> fuzz;
+}
+generated quantities {
+    vector[N] y;
+    matrix[N, P] Latent;
+    matrix[N, P] X;
+    real beta_0;
+    vector[P] beta_latent;
+    beta_0 = normal_rng(10, 1);
+    for (p in 1:P) {
+        beta_latent[p] = normal_rng(0, 1);
+    }
+    for (n in 1:N) {
+        for (p in 1:P) {
+            Latent[n, p] = normal_rng(0, 1);
+            X[n, p] = Latent[n, p] + normal_rng(0, fuzz);
+        }
+        y[n] = normal_rng(beta_0 + Latent[n]*beta_latent, 1);
+    }
+}
+```

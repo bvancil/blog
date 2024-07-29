@@ -1,0 +1,517 @@
+---
+title: "Estimating the population mean and variance from a sample minimum, mean, and maximum"
+author: "Brian Vancil"
+date: "2024-02-17"
+categories: [data_science, problem, frequentist]
+---
+
+## Problem statement
+
+Let $X$ be a random variable such that the mean $E[X]=\mu$ and variance (2nd central moment) $\text{Var}(X)=E[(X-E[X])^2)=\mu_2 = \sigma^2$,
+which are unknown. (And, though it's completely unmotivated that we need it at this, point, we define the 3rd central moment $\mu_3$ and skewness $\gamma$ such that $E[(X-E[X])^3)=\mu_3=\sigma^2\cdot \gamma$, the 4th central moment $\mu_4$ and excess kurtosis $\kappa$ such that $E[(X-E[X])^4)=\mu_4=\sigma^4\cdot(3 + \kappa)$.)
+
+Let $X_i\sim X$ for $i\in \{1, 2, \ldots, N \}$ be i.i.d. samples of $X$.
+
+Suppose that we don't have access to the individual values of the $X_i$ but only their aggregations through a partition of the $N$ samples into $G$ groups through a surjection $\pi: \{1, 2, \ldots, N \}\rightarrow \{1, 2, \ldots, G \}$ and aggregates by group (specified below). We first reindex the $X_i$ using a double index, i.e., one index $g$ (from $1$ to $G$) for group membership and a second for index within each group (from $1$ to $N_g$). $\forall g\in \{1, 2, \ldots, G \}$, we define:
+
+$$
+\begin{aligned}
+X_{g\bullet} &= \{X_n|n\in \pi^{-1}(g) \} 
+    &&= \{X_{g1}, X_{g2}, \ldots, X_{gN_g}\}
+\end{aligned}
+$$
+
+The only values we have access to for each group are the aggregate count, minimum, mean, and maximum. $\forall g\in \{1, 2, \ldots, G \}$, we know the following values:
+
+$$
+\begin{aligned}
+N_g &= |\pi^{-1}(g)|
+    &&= |X_{g\bullet}|
+    \\
+X_{g(1)} &= \min \{ X_i|i \in \pi^{-1}(g) \}
+    &&= \min X_{g\bullet}
+    \\
+\bar{X}_g &= \frac{1}{N_g} \sum\limits_{i \in \pi^{-1}(g)} X_i
+    &&= \frac{1}{N_g} \sum\limits_{i = 1}^{N_g} X_{gi}
+    \\
+X_{g(N_g)} &= \min \{ X_i|i \in \pi^{-1}(g) \}
+    &&= \max X_{g\bullet}
+    \\
+\end{aligned}
+$$
+
+Here we have used the order statistics notation for the minimum and maximum of a sample. In the second equality of each line, we have reindexed the single index $i$ to a double index $gi$.
+
+Given these aggregate data points, what is the best unbiased estimator of $\mu$ and $\sigma^2$?
+
+## tl;dr
+
+Watch this space for blog posts where I solve this problem in various simplified forms.
+
+## Strategy
+
+We will try to simplify this problem in various ways to make it tractable and then generalize to the full problem.
+
+## Related results
+
+### Single sample (case $G = 1$ or case of a single group $X_{g\bullet}$)
+
+Defining $\bar{X} = \frac{1}{n} \sum\limits_{i = 1}^n X_i$,
+some well-known results are that $E[\bar{X}] = \mu$ and that $\text{Var}(\bar{X}) = \frac{\sigma^2}{n}$.
+Can we do better than this given that we also know the
+minimum and maximum of the sample?
+
+#### Order statistics
+
+If $F_X$ is the cumulative distribution function of $X$, then we can find the cumulative distribution functions of the minimum and maximum as follows.
+
+We use order statistic notation, with $X_{(k)}$ being the $k$&ZeroWidthSpace;th element when the set $\{X_i\}$ is ordered in ascending sequence.
+
+For the maximum, $X_{(n)} = \text{max} \{X_i\}$,
+
+$$
+\begin{aligned}
+F_{X_{(n)}}(x) &= P(X_{(n)} \le x) \\
+&= \prod\limits_{i=1}^n P(X_i \le x) \\
+&= F_X(x)^n
+\end{aligned}
+$$
+
+Similarly, for the minimum, $X_{(1)} = \text{min} \{X_i\}$,
+
+$$
+\begin{aligned}
+F_{X_{(1)}}(x) &= P(X_{(1)} \le x) \\
+&= 1 - P(x < X_{(1)}) \\
+&= 1 - \prod\limits_{i=1}^n P(x < X_i) \\
+&= \lim_{x' \rightarrow x^-} 1-(1-F_X(x'))^n \\
+&= 1-(1-F_X(x^-))^n
+\end{aligned}
+$$
+
+We consider possibly discontinuous cumulative distribution functions with probability density functions that may be generalized distributions rather than functions.
+
+It may also be helpful to know the probability density function $f_{X_{(k)}}$ of the median
+$X_{(k)}$ for $n=2k-1$ ([Sampling distribution - Wikipedia](https://en.wikipedia.org/wiki/Sampling_distribution)).
+
+$$
+f_{X_{(k)}}(x) = \frac{n!}{(k-1)!^2}f_X(x)\left(F_X(x)(1-F_X(x))\right)^{k-1}
+$$
+
+This is based on $\frac{n!}{(k-1)!^2}$ ways of ordering elements divided by the ways of ordering the $k-1$ values that are smaller and larger.
+
+## Simple version of the problem 1
+
+Consider the case $n = 3$ for this section.
+We have 3 samples, $\{X_1, X_2, X_3\}$, which, in ascending order are $X_{(1)}, X_{(2)}, X_{(3)}$.
+Which is a better estimate of $\mu$, $\bar{X}$ or $X_{(2)}$?
+
+For $n=3$, $k=2$, and so,
+
+$$
+f_{X_{(2)}}(x) = 3! f(x)\left(F(x)(1-F(x))\right),
+$$
+where we have dropped the subscript $X$ for $f$ and $F$.
+
+Checking the normalization,
+
+$$
+\begin{aligned}
+E[1] &= \int dx f_{X_{(2)}}(x) \\
+&= \int dx\, 6 f(x)\left(F(x)(1-F(x))\right) \\
+&= \int_0^1 du\, 6u(1-u) \\
+&= \left. \left( 3 u^2 -2 u^3 \right) \right|^1_0 \\
+&= 3 - 2 \\
+&= 1
+\end{aligned}
+$$
+
+This calculation also tells us that
+$$
+\begin{aligned}
+F_{X_{(2)}}(x_2) &= \int_0^{F(x_2)} du\, 6u(1-u) \\
+&= \left. \left( 3 u^2 - 2 u^3 \right) \right|^{F(x_2)}_0 \\
+&= 3 F(x_2)^2 - 2 F(x_2)^3
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+E[X_{(2)}] &= \int dx f_{X_{(2)}}(x) x \\
+&= \int dx 6 f(x)\left(F(x)(1-F(x))\right) x \\
+&= 6 \int_0^1 du u(1-u) F^{-1}(u)
+\end{aligned}
+$$
+
+## Simplified problem focusing only on sample counts and means
+
+We definitely throw away information by ignoring the sample minima and maxima, but in this case, the problem becomes analytically more tractable.
+
+### Higher moments of the sample mean
+
+Let's start with a simple sample of $N$ i.i.d. draws from a random variable $X$, i.e., let $X_i\sim X$ be i.i.d., and define
+
+$$
+\begin{equation}
+\bar{X} = \frac{1}{N}\sum\limits_{n=1}^N X_n
+\end{equation}
+$$
+
+$$
+\begin{aligned}
+E[\bar{X}] &= \frac{1}{N}\sum\limits_{n=1}^N E[X_n] \\
+&= \frac{1}{N}\sum\limits_{n=1}^N E[X] \\
+&= E[X] \\
+&= \mu
+\end{aligned}
+$$
+
+### With cumulants
+
+We use [cumulants](https://en.wikipedia.org/wiki/Cumulant) because they have some nice translation-invariant, scaling, and additive properties.
+
+Given the cumulants $\kappa_m(X)$, we can work out that the cumulants of $\bar{X}$ are 
+
+$$
+\begin{aligned}
+\kappa_m(\bar{X}) &= \kappa_m(\frac{1}{N}\sum\limits_n X_n) \\
+&= \frac{1}{N^m} \kappa_m(\sum\limits_n X_n) \qquad \text{(by homogeneous scaling)} \\
+&= \frac{1}{N^m} \sum\limits_n \kappa_m(X_n) \qquad \text{(by independence, linearity)} \\
+&= \frac{1}{N^m} \sum\limits_n \kappa_m(X) \\
+&= \frac{1}{N^m} N \kappa_m(X) \\
+&= \frac{\kappa_m(X)}{N^{m-1}} 
+\end{aligned}
+$$
+
+[Since the first 4 cumulants are](https://en.wikipedia.org/wiki/Cumulant#The_first_several_cumulants_as_functions_of_the_moments)
+
+1. $\kappa_1(X) = E[X] = \mu$
+2. $\kappa_2(X) = E[(X - E[X])^2] = \mu_2 = \sigma^2$
+3. $\kappa_3(X) = E[(X - E[X])^3] = \mu_3 = \gamma\sigma^3$
+4. $\kappa_4(X) = E[(X - E[X])^4] - 3 E[(X - E[X])^2]^2 = \mu_4 - 3\mu_2^2 = \kappa \sigma^4$
+
+and, using the computed scaling relationship between cumulants, we now know that
+
+1. $\kappa_1(\bar{X}) = \kappa_1(X) = \mu$
+2. $\kappa_2(\bar{X}) = \frac{\kappa_2(X)}{N} = \frac{\sigma^2}{N}$
+3. $\kappa_3(\bar{X}) = \frac{\kappa_3(X)}{N^2} = \frac{\gamma\sigma^3}{N^2}$
+4. $\kappa_4(\bar{X}) = \frac{\kappa_4(X)}{N^3} = \frac{\kappa \sigma^4}{N^3}$
+
+and we can invert these formulas to determine the central moments $\mu_m$
+
+1. $\mu_1(\bar{X}) = 0$
+2. $\mu_2(\bar{X}) = \kappa_2(\bar{X}) = \frac{\sigma^2}{N}$
+3. $\mu_3(\bar{X}) = \kappa_3(\bar{X}) = \frac{\gamma\sigma^3}{N^2}$
+4. $\mu_4(\bar{X}) = \kappa_4(\bar{X}) + 3 \kappa_2(\bar{X})^2 = \frac{\kappa \sigma^4}{N^3} + 3\left(\frac{\sigma^2}{N}\right)^2 = \frac{\sigma^4}{N^3}\left(\kappa + 3N\right)$
+
+and then use the binomial formula
+
+$$
+\begin{aligned}
+\mu'_m &= E[((X - \mu) + \mu)^m] = E\left[\sum\limits_{k=0}^m \binom{m}{k}(X - \mu)^k\mu^{m-k} \right] \\
+&= \sum\limits_{k=0}^m \binom{m}{k}E[(X - \mu)^k]\mu^{m-k} =  \sum\limits_{k=0}^m \binom{m}{k}\mu_k\mu^{m-k},
+\end{aligned}
+$$
+
+along with the fact that $\mu_1 = 0$, to determine the non-central moments $\mu'_m(\bar{X})$
+
+1. $\mu'_1(\bar{X}) = \mu_1(\bar{X}) + \mu = \mu$
+2. $\mu'_2(\bar{X}) = \mu_2(\bar{X}) + \mu^2 = \frac{\sigma^2}{N} + \mu^2$
+3. $\mu'_3(\bar{X}) = \mu_3(\bar{X}) + 3 \mu_2(\bar{X}) \mu + \mu^3 = \frac{\gamma\sigma^3}{N^2} + \frac{3\mu\sigma^2}{N} + \mu^3$
+4. $\mu'_4(\bar{X}) = \mu_4(\bar{X}) + 4 \mu_3(\bar{X}) \mu + 6 \mu_2(\bar{X}) \mu^2 + \mu^4 = \frac{\kappa \sigma^4}{N^3} + \frac{3 \sigma^4}{N^2} + \frac{4 \gamma \mu \sigma^3}{N^2} + \frac{6 \mu^2 \sigma^2}{N} + \mu^4$
+
+This gets us a long way to computing the moments of the mean within each group. We will also be
+computing powers of different groups, but these are independent, so we don't have to worry too much.
+
+One issue that does come up is that we will not have access to the population mean but rather be estimating it from the sample. Continuing the focus on a single sample of $N$ $X_i\sim X$ with $\bar{X} = \frac{1}{N}\sum\limits_{i=1}^N X_i$, we can calculate $E[(X_i - \bar{X})^2]$ fairly easily by decomposing $\bar{X}$ into parts that dependent with $X_i$ and parts that are independent. This decomposition is $\bar{X} = \frac{1}{N} X_i + \frac{N-1}{N} \bar{X}_{-i}$, where $\bar{X}_{-i}$ is the mean of the remaining elements excluding $X_i$.
+
+$$
+\begin{aligned}
+E[(X_i - \bar{X})^2] &= E\left[\left(X_i - \left(\frac{1}{N} X_i + \frac{N-1}{N} \bar{X}_{-i} \right)\right)^2\right] \\
+&= \left(\frac{N-1}{N}\right)^2 E[(X_i - \bar{X}_{-i})^2] \\
+&= \left(\frac{N-1}{N}\right)^2 \left(E[X_i^2] - 2E[X_i]E[\bar{X}^{-i}] + E[\bar{X}_{-i}^2] \right) \\
+&= \left(\frac{N-1}{N}\right)^2 \left((\sigma^2 + \mu^2) - 2\mu^2 + (\frac{\sigma^2}{N-1} + \mu^2) \right) \\
+&= \left(\frac{N-1}{N}\right)^2 \left(\frac{N}{N-1}\sigma^2 \right) \\
+&= \frac{N-1}{N} \sigma^2
+\end{aligned}
+$$
+
+A single squared deviation can be used as an estimator of $\sigma^2$, just not a very good one.
+
+We can see that if we define
+
+$$
+\widehat{\sigma^2} = \frac{1}{N-1} \sum\limits_{i=1}^N (X_i - \bar{X})^2
+$$
+
+it is clear from our previous calculation that $E[\widehat{\sigma^2}] = \sigma^2$ and so we have an unbiased estimator. However, it's also clear that if $u_i$ is any unit weighting (i.e., $\sum\limits_i u_i = 1) over $\{1, 2, \ldots, N\}$, and thus, we have an infinite family of unbiased estimators
+
+$$
+\widehat{\sigma^2_u} = \frac{N}{N-1} \sum\limits_{i=1}^N u_i(X_i - \bar{X})^2,
+$$
+
+since $E[\widehat{\sigma^2_u}] = \sigma^2$ also.
+
+Which of this infinite family is the most efficient? We seek the estimator with the smallest standard error $\text{Var}(\widehat{\sigma^2_u})$.
+
+Proceeding a bit by brute force, we calculate
+
+$$
+\begin{align}
+\text{Var}(\widehat{\sigma^2_u}) &= E\left[\widehat{\sigma^2_u}^2\right] - E\left[\widehat{\sigma^2_u}\right]^2 \\
+&= \left(\frac{N}{N-1}\right)^2 \left(\sum\limits_{i,j=1}^N u_i u_j E\left[(X_i - \bar{X})^2(X_j - \bar{X})^2\right]\right) - \sigma^4
+\end{align}
+$$
+
+We'll tackle the terms in two cases. Case 1 in the sum is that $i=j$. We decompose $\bar{X}$ as before into $\bar{X} = \frac{1}{N} X_i + \frac{N-1}{N} \bar{X}_{-i}$.
+
+Since $E[X_i - \bar{X}] = 0$, we are working with a central moment, which we can express in terms of linear cumulants as
+
+$$
+\begin{align}
+E\left[(X_i - \bar{X})^4\right] &= \kappa_4(X_i - \bar{X}) + 3 E\left[(X_i - \bar{X})^2\right]^2 \\
+&= \kappa_4\left(X_i - \left(\frac{1}{N} X_i + \frac{N-1}{N} \bar{X}_{-i}\right)\right) + 3 \left(\frac{N-1}{N}\sigma^2\right)^2 \\
+&= \left(\frac{N-1}{N}\right)^4 \kappa_4\left(X_i - \bar{X}_{-i}\right) + 3 \left(\frac{N-1}{N}\right)^2\sigma^4 \\
+&= \left(\frac{N-1}{N}\right)^4 \left(\kappa_4(X_i) + (-1)^4\kappa_4(\bar{X}_{-i})\right) + 3 \left(\frac{N-1}{N}\right)^2\sigma^4 \\
+&= \left(\frac{N-1}{N}\right)^4 \left(\kappa\sigma^4 + \frac{1}{(N-1)^3}\kappa\sigma^4\right) + 3 \left(\frac{N-1}{N}\right)^2\sigma^4 \\
+&= \sigma^4\left(\kappa\frac{(N-1)}{N^3}\left(\frac{(N-1)^3 + 1}{N} \right) + 3 \left(\frac{N-1}{N}\right)^2\right) \\
+&= \sigma^4\frac{N-1}{N^3}\left(\left(\frac{(N-1)^3 + 1}{N} \right)\kappa + 3N(N-1)\right) \\
+&= \sigma^4\frac{N-1}{N^3}\left((N^2-3N+3)\kappa + 3N(N-1)\right) \\
+&= \frac{\sigma^4}{N^3}\left(\kappa\left(N^2(N-1)-3(N-1)^2\right) + 3N(N-1)^2\right)
+\end{align}
+$$
+
+Case 2 in the sum is that $i\ne j$. We decompose $\bar{X}$ into 3 independent terms $\bar{X} = \frac{1}{N} X_i + \frac{1}{N} X_j + \frac{N-2}{N} \bar{X}_{-ij}$ so that we can collect non-independent calculations. There's probably a more elegant way to do this, but brute force works.
+
+$$
+\begin{align}
+& E\left[(X_i - \bar{X})^2(X_j - \bar{X})^2\right] \\
+
+&= E\left[\left(X_i - \left(\frac{1}{N} X_i + \frac{1}{N} X_j + \frac{N-2}{N} \bar{X}_{-ij}\right)\right)^2\left(X_j - \left(\frac{1}{N} X_i + \frac{1}{N} X_j + \frac{N-2}{N} \bar{X}_{-ij}\right)\right)^2\right] \\
+
+&= E\left[\left(\frac{N-1}{N} X_i - \frac{1}{N} X_j - \frac{N-2}{N}\bar{X}_{-ij}\right)^2\left(- \frac{1}{N} X_i + \frac{N-1}{N} X_j - \frac{N-2}{N} \bar{X}_{-ij}\right)^2\right] \\
+
+&= \frac{1}{N^4} E\left[\left((N-1) X_i - X_j - (N-2)\bar{X}_{-ij}\right)^2\left(- X_i + (N-1) X_j - (N-2) \bar{X}_{-ij}\right)^2\right] \\
+
+&= \frac{1}{N^4} E\left[\left((N-1)^2 X_i^2 + X_j^2 + (N-2)^2\bar{X}_{-ij}^2 - 2(N-1)X_i X_j - 2(N-1)(N-2)X_i \bar{X}_{-ij} + 2(N-2) X_j \bar{X}_{-ij}\right)\right. \\
+&\qquad\cdot\left.\left(X_i^2 + (N-1)^2 X_j^2 + (N-2)^2 \bar{X}_{-ij}^2 - 2(N-1)X_i X_j + 2(N-2)X_i \bar{X}_{-ij} - 2(N-1)(N-2) X_j \bar{X}_{-ij}\right)\right] \\
+
+&= \frac{1}{N^4} E\left[(N-1)^2 X_i^4 + (N-1)^2 X_j^4 + (N-2)^4\bar{X}_{-ij}^4  \right. \\
+&\qquad - 2\left((N-1)^3 + (N-1)\right)X_i^3 X_j -2\left((N-1)^3 + (N-1)\right)X_i X_j^3 \\
+&\qquad +2\left((N-1)^2(N-2) - (N-1)(N-2)\right)X_i^3 \bar{X}_{-ij} +2\left((N-1)^2(N-2) - (N-1)(N-2)\right)X_j^3 \bar{X}_{-ij} \\
+&\qquad -2\left((N-1)(N-2)^3 - (N-2)^3\right)X_i \bar{X}_{-ij}^3 -2\left((N-1)(N-2)^3 - (N-2)^3\right)X_j \bar{X}_{-ij}^3 \\
+&\qquad +\left((N-1)^4 + 1 + 4(N-1)^2\right)X_i^2 X_j^2 \\
+&\qquad +\left((N-1)^2(N-2)^2 + (N-2)^2 - 4(N-1)(N-2)^2\right)X_i^2 \bar{X}_{-ij}^2 \\
+&\qquad +\left((N-1)^2(N-2)^2 + (N-2)^2 - 4(N-1)(N-2)^2\right)X_j^2 \bar{X}_{-ij}^2 \\
+&\qquad +\left(-2(N-1)^3(N-2)-4(N-1)(N-2)+4(N-1)^2(N-2)+2(N-2)\right)X_i^2 X_j \bar{X}_{-ij} \\
+&\qquad +\left(-2(N-1)^3(N-2)-4(N-1)(N-2)+4(N-1)^2(N-2)+2(N-2)\right)X_i X_j^2 \bar{X}_{-ij} \\
+&\qquad \left.+\left(-4(N-1)(N-2)^2+4(N-1)^2(N-2)^2+4(N-2)^2\right)X_i X_j \bar{X}_{-ij}^2 \right] \\
+
+&= \frac{1}{N^4}\left(2(N-1)^2 E[X^4] + (N-2)^4 E[\bar{X}_{-ij}^4] -4(N-1)\left((N-1)^2 + 1\right)E[X^3]E[X] \right. \\
+&\qquad + 4(N-1)(N-2)^2E[X^3]E[\bar{X}_{-ij}] - 4(N-2)^4E[X]E[\bar{X}_{-ij}^3] \\
+&\qquad + \left((N-1)^4 + 4(N-1)^2 + 1\right)E[X^2]^2 + 2(N-2)^2\left((N-1)^2 - 4(N-1) + 1\right)E[X^2]E[\bar{X}_{-ij}^2] \\
+&\qquad -4(N-2)\left((N-1)^3 - 2(N-1)^2 + 2(N-1) - 1\right)E[X^2]E[X]E[\bar{X}_{-ij}] \\
+&\qquad \left. +4(N-2)^2\left((N-1)^2 - (N-1) + 1\right)E[X]^2E[\bar{X}_{-ij}^2] \right) \\
+
+&= \frac{1}{N^4}\biggl(  2(N-1)^2 \left(\kappa \sigma^4 + 3 \sigma^4 + 4 \gamma \mu \sigma^3 + 6 \mu^2 \sigma^2 + \mu^4\right) \\
+&\qquad + (N-2)^4 \left(\frac{\kappa \sigma^4}{(N-2)^3} + \frac{3 \sigma^4}{(N-2)^2} + \frac{4 \gamma \mu \sigma^3}{(N-2)^2} + \frac{6 \mu^2 \sigma^2}{N-2} + \mu^4\right) \\
+&\qquad -4(N-1)\left((N-1)^2 + 1\right)\left(\gamma\sigma^3 + 3\mu\sigma^2 + \mu^3\right)\mu \\
+&\qquad + 4(N-1)(N-2)^2\left(\gamma\sigma^3 + 3\mu\sigma^2 + \mu^3\right)\mu \\
+&\qquad - 4(N-2)^4 \mu \left(\frac{\gamma\sigma^3}{(N-2)^2} + \frac{3\mu\sigma^2}{N-2} + \mu^3\right) \\
+&\qquad + \left((N-1)^4 + 4(N-1)^2 + 1\right)\left(\sigma^2 + \mu^2\right)^2 \\
+&\qquad + 2(N-2)^2\left((N-1)^2 - 4(N-1) + 1\right)\left(\sigma^2 + \mu^2\right)\left(\frac{\sigma^2}{N-2} + \mu^2\right) \\
+&\qquad -4(N-2)\left((N-1)^3 - 2(N-1)^2 + 2(N-1) - 1\right)\left(\sigma^2 + \mu^2\right)\mu^2 \\
+&\qquad +4(N-2)^2\left((N-1)^2 - (N-1) + 1\right)\mu^2\left(\frac{\sigma^2}{N-2} + \mu^2\right) \biggr) \\
+
+&= \frac{1}{N^4}\biggl( 2(N-1)^2\kappa\sigma^4 +6(N-1)^2\sigma^4 + 8(N-1)^2\gamma\mu \sigma^3 + 12(N-1)^2 \mu^2 \sigma^2 + 2(N-1)^2\mu^4 \\
+&\qquad + (N-2)\kappa\sigma^4 + 3(N-2)^2\sigma^4 + 4(N-2)^2\gamma\mu\sigma^3 + 6(N-2)^3\mu^2\sigma^2 + (N-2)^4\mu^4 \\
+&\qquad - 4(N-1)\left((N-1)^2 + 1\right)\gamma\mu\sigma^3 -12(N-1)\left((N-1)^2 + 1\right)\mu^2\sigma^2 - 4(N-1)\left((N-1)^2 + 1\right)\mu^4 \\
+&\qquad + 4(N-1)(N-2)^2\gamma\mu\sigma^3 + 12(N-1)(N-2)^2\mu^2\sigma^2 + 4(N-1)(N-2)^2\mu^4 \\
+&\qquad - 4(N-2)^2\gamma\mu\sigma^3 - 12(N-2)^3\mu^2\sigma^2 - 4(N-2)^4\mu^4 \\
+&\qquad + \left((N-1)^4 + 4(N-1)^2 + 1\right)\left(\sigma^4 + 2\mu^2\sigma^2 + \mu^4\right) \\
+&\qquad + 2(N-2)\left((N-1)^2 - 4(N-1) + 1\right)\left(\sigma^4 + (N-1)\mu^2\sigma^2 + (N-2)\mu^4\right) \\
+&\qquad - 4(N-2)\left((N-1)^3 - 2(N-1)^2 + 2(N-1) - 1\right)\left(\mu^2\sigma^2 + \mu^4\right) \\
+&\qquad + 4(N-2)\left((N-1)^2 - (N-1) + 1\right)\left(\mu^2\sigma^2 + (N-2)\mu^4\right) \biggr) \\
+
+&= \frac{1}{N^4}\biggl( \left[2(N-1)^2 + (N-2)\right]\kappa\sigma^4 \\
+&\qquad + \left[6(N-1)^2 + 3(N-2)^2 + \left((N-1)^4 + 4(N-1)^2 + 1\right) + 2(N-2)\left((N-1)^2 - 4(N-1) + 1\right) \right]\sigma^4 \\
+&\qquad  + \left[8(N-1)^2 + 4(N-2)^2 - 4(N-1)\left((N-1)^2 + 1\right) + 4(N-1)(N-2)^2 - 4(N-2)^2 \right]\gamma\mu\sigma^3 \\
+&\qquad + \left[12(N-1)^2 + 6(N-2)^3 - 12(N-1)\left((N-1)^2 + 1\right) + 12(N-1)(N-2)^2 - 12(N-2)^3 \right. \\
+&\qquad\qquad + 2\left((N-1)^4 + 4(N-1)^2 + 1\right) + 2(N-1)(N-2)\left((N-1)^2 - 4(N-1) + 1\right) \\
+&\qquad\qquad \left. - 4(N-2)\left((N-1)^3 - 2(N-1)^2 + 2(N-1) - 1\right) + 4(N-2)\left((N-1)^2 - (N-1) + 1\right) \right]\mu^2\sigma^2 \\
+&\qquad + \left[2(N-1)^2 + (N-2)^4 - 4(N-1)\left((N-1)^2 + 1\right) + 4(N-1)(N-2)^2 - 4(N-2)^4 \right. \\
+&\qquad\qquad + \left((N-1)^4 + 4(N-1)^2 + 1\right) + 2(N-2)^2\left((N-1)^2 - 4(N-1) + 1\right) \\
+&\qquad\qquad \left. - 4(N-2)\left((N-1)^3 - 2(N-1)^2 + 2(N-1) - 1\right) + 4(N-2)^2\left((N-1)^2 - (N-1) + 1\right)   \right]\mu^4 \biggr) \\
+
+&= \frac{1}{N^4}\biggl( N(2N-3)\kappa\sigma^4 + N^2(N^2-2N+3)\sigma^4 + 0\cdot\gamma\mu\sigma^3 + 0\cdot\mu^2\sigma^2 + 0\cdot\mu^4 \biggr) \\ 
+&= \frac{\sigma^4}{N^3}\left(N^3 - (N-\kappa)(2N-3)\right) \\
+&= \frac{\sigma^4}{N^3}\left(\kappa(2N-3) + N(N^2-2N+3)\right)
+\end{align}
+$$
+
+Continuing this painful brute-force process, we calculate the parts of the sum:
+
+The $i=j$ bits give us:
+
+$$
+\begin{align}
+& \sum\limits_{i=1}^N u_i^2 E\left[(X_i - \bar{X})^4\right] = \sum\limits_{i=1}^N u_i^2 E\left[(X_i - \bar{X})^4\right] \\
+&= \frac{\sigma^4}{N^3}\left(\kappa\left(N^2(N-1)-3(N-1)^2\right) + 3N(N-1)^2\right) \left(\sum u_i^2\right)
+\end{align}
+$$
+
+The $i\ne j$ bits give us:
+
+
+$$
+\begin{align}
+& \sum\limits_{i,j=1 \atop i\ne j}^N u_i u_j E\left[(X_i - \bar{X})^2(X_j - \bar{X})^2\right] \\
+&= \frac{\sigma^4}{N^3}\left(\kappa(2N-3) + N(N^2-2N+3)\right) \left(\sum\limits_{i\ne j} u_i u_j\right)
+\end{align}
+$$
+
+Because the square of $1 = \sum u_i$ is
+
+$$
+1 = \sum\limits_{i,j=1}^N u_i u_j = \sum u_i^2 + \sum\limits_{i\ne j} u_i u_j,
+$$
+
+the combined sum is then
+
+$$
+\begin{align}
+& \sum\limits_{i,j=1}^N u_i u_j E\left[(X_i - \bar{X})^2(X_j - \bar{X})^2\right] \\
+&=
+    \frac{\sigma^4}{N^3}\left(\kappa\left(N^2(N-1)-3(N-1)^2\right) + 3N(N-1)^2\right) \left(\sum u_i^2\right)
+    +
+    \frac{\sigma^4}{N^3}\left(\kappa(2N-3) + N(N^2-2N+3)\right) \left(1-\sum u_i^2\right) \\
+&= \frac{\sigma^4}{N^3}\biggl(
+    \left(\kappa\left(N^2(N-1)-3(N-1)^2\right) + 3N(N-1)^2\right) \left(\sum u_i^2\right)
+    +
+    \left(\kappa(2N-3) + N(N^2-2N+3)\right) \left(1-\sum u_i^2\right) 
+\biggr) \\
+&= \frac{\sigma^4}{N^3}\biggl(
+    \left(\left(N^3-4N^2+6N-3\right)\kappa + 3N^3-6N^2+3N\right) \left(\sum u_i^2\right)
+    +
+    \left((2N-3)\kappa + N^3-2N^2+3N)\right) \left(1-\sum u_i^2\right) 
+\biggr) \\
+&= \frac{\sigma^4}{N^3}\biggl(
+    \biggl[
+        \left(N^3-4N^2+4N\right)\left(\sum u_i^2\right)
+        +
+        (2N-3)
+    \biggr] \kappa 
+    +
+    \left(2N^3-4N^2\right) \left(\sum u_i^2\right)
+    +
+    N^3-2N^2+3N
+\biggr)
+\end{align}
+$$
+
+The variance of our custom estimator is thus
+
+$$
+\begin{align}
+\text{Var}(\widehat{\sigma^2_u}) &= E\left[\widehat{\sigma^2_u}^2\right] - E\left[\widehat{\sigma^2_u}\right]^2 \\
+&= \left(\frac{N}{N-1}\right)^2 \left(\sum\limits_{i,j=1}^N u_i u_j E\left[(X_i - \bar{X})^2(X_j - \bar{X})^2\right]\right) - \sigma^4 \\
+&= \left(\frac{N}{N-1}\right)^2 \frac{\sigma^4}{N^3}\biggl(
+    \biggl[
+        \left(N^3-4N^2+4N\right)\left(\sum u_i^2\right)
+        +
+        (2N-3)
+    \biggr] \kappa 
+    +
+    \left(2N^3-4N^2\right) \left(\sum u_i^2\right)
+    +
+    N^3-2N^2+3N
+\biggr) - \sigma^4 \\
+&= \frac{\sigma^4}{N(N-1)^2}\biggl(
+    \biggl[
+        \left(N^3-4N^2+4N\right)\left(\sum u_i^2\right)
+        +
+        (2N-3)
+    \biggr] \kappa 
+    +
+    \left(2N^3-4N^2\right) \left(\sum u_i^2\right)
+    +
+    N^3-2N^2+3N \\
+    &\qquad -(N^3-2N^2+N)
+\biggr) \\
+&= \frac{\sigma^4}{N(N-1)^2}\biggl(
+    \biggl[
+        \left(N^3-4N^2+4N\right)\left(\sum u_i^2\right)
+        +
+        (2N-3)
+    \biggr] \kappa 
+    +
+    \left(2N^3-4N^2\right) \left(\sum u_i^2\right)
+    +
+    2N
+\biggr)
+\end{align}
+$$
+
+The extremum happens when $u^*_i = \frac{1}{N}$, in which case $\sum u_i^2 = \sum \frac{1}{N^2} = \frac{1}{N}$ and thus
+
+$$
+\begin{align}
+\text{Var}(\widehat{\sigma^2_{u^*}}) &= \frac{\sigma^4}{N(N-1)^2}\biggl(
+    \biggl[
+        \left(N^3-4N^2+4N\right)\left(\sum u_i^2\right)
+        +
+        (2N-3)
+    \biggr] \kappa 
+    +
+    \left(2N^3-4N^2\right) \left(\sum u_i^2\right)
+    +
+    2N
+\biggr) \\
+&= \frac{\sigma^4}{N(N-1)^2}\biggl(
+    \biggl[
+        \left(N^3-4N^2+4N\right)\left(\frac{1}{N}\right)
+        +
+        (2N-3)
+    \biggr] \kappa 
+    +
+    \left(2N^3-4N^2\right) \left(\frac{1}{N}\right)
+    +
+    2N
+\biggr) \\
+&= \frac{\sigma^4}{N(N-1)^2}\biggl(
+    \biggl[
+        N^2-4N+4
+        +
+        2N-3
+    \biggr] \kappa 
+    +
+    2N^2-4N
+    +
+    2N
+\biggr) \\
+&= \frac{\sigma^4}{N(N-1)^2}\biggl(
+    \left( N^2-2N+1 \right) \kappa 
+    +
+    2N^2-2N
+\biggr) \\
+&= \frac{\sigma^4}{N(N-1)^2}\left( (N-1)^2 \kappa + 2N(N-1) \right) \\
+&= \frac{\sigma^4}{N}\left(\kappa + \frac{2N}{N-1} \right)
+\end{align}
+$$
+
+According to [Variance - Wikipedia](https://en.wikipedia.org/wiki/Variance#Distribution_of_the_sample_variance), we should have (since we are using the excess kurtosis $\kappa$ and the full kurtosis is $\kappa + 3$)
+
+$$
+\begin{aligned}
+\text{Var}(\widehat{\sigma^2_{u^*}})
+    &= \frac{\sigma^4}{N}\left(\kappa + 3 - 1 + \frac{2}{N-1}\right) 
+    = \frac{\sigma^4}{N}\left(\kappa + 3 - \frac{N-3}{N-1}\right) \\
+    &= \frac{\sigma^4}{N}\left(\kappa + \frac{2N}{N-1}\right),
+\end{aligned}
+$$
+
+so it looks like we got it. This method wasn't particularly easy, especially when we used general $u_i$. Here we could also optimize by symmetry of the problem, and that won't be true with our full problem.
+
+[statistics - Variance of sample variance? - Mathematics Stack Exchange](https://math.stackexchange.com/questions/72975/variance-of-sample-variance) and [Some Useful Moment Results in Sampling Problems on JSTOR](https://www.jstor.org/stable/24591747) have some interesting results.
+
+[statistics - Variance of sample variance? - Mathematics Stack Exchange](https://math.stackexchange.com/questions/72975/variance-of-sample-variance) has a proof of the pairwise lemma

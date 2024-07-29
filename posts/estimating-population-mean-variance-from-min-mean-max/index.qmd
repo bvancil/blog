@@ -1,0 +1,621 @@
+---
+title: "Estimating the population variance from sample means"
+author: "Brian Vancil"
+date: "2024-02-17"
+categories: [data_science, JuliaLang, frequentist]
+kernel: sagemath
+---
+
+## Problem statement
+
+Let $X$ be a random variable such that $E[X]=\mu$ and $\text{Var}(X)=\sigma^2$,
+which are unknown.
+
+Let $g\in\{1,\ldots, G\}$ index $G$ groups, each of $N_g$ i.i.d. samples of $X$. That is, $\forall g\in\{1,\ldots, G\}, \forall n\in \{1,\ldots,N_g\}, X_{gn}\sim X$ are i.i.d.
+
+We are given $N_g$ and group means $\bar{X}_g = \frac{1}{N_g} \sum\limits_n X_{gn}$. Is it possible to determine an unbiased estimator of $\text{Var}(X)$?
+
+## Related results
+
+We [know](../estimating-population-mean-variance-from-min-mean-max/) the first four non-central moments of $X_{gn}\sim X$, which are i.i.d.:
+
+1. $\mu'_1(X_{gn}) = \mu$
+2. $\mu'_2(X_{gn}) = \mu^2 + \sigma^2$
+3. $\mu'_3(X_{gn}) = \gamma\sigma^3 + 3\mu\sigma^2 + \mu^3$
+4. $\mu'_4(X_{gn}) = (\kappa + 3) \sigma^4 + 4 \gamma \mu \sigma^3 + 6 \mu^2 \sigma^2 + \mu^4$
+
+We also know the first four non-central moments of $\bar{X}_g$:
+
+1. $\mu'_1(\bar{X}_g) = \mu$
+2. $\mu'_2(\bar{X}_g) = \frac{\sigma^2}{N_g} + \mu^2$
+3. $\mu'_3(\bar{X}_g) = \frac{\gamma\sigma^3}{N_g^2} + \frac{3\mu\sigma^2}{N_g} + \mu^3$
+4. $\mu'_4(\bar{X}_g) = \frac{\kappa \sigma^4}{N_g^3} + \frac{3 \sigma^4}{N_g^2} + \frac{4 \gamma \mu \sigma^3}{N_g^2} + \frac{6 \mu^2 \sigma^2}{N_g} + \mu^4$
+
+These are also independent, though of course not identically distributed when the sizes of the samples $N_g$ differ.
+
+It is also well known that an unbiased estimator for $\mu$ is $\bar{\bar{X}}=\frac{1}{N}\sum\limits_{g, n} X_{gn}$, which is equivalent to the weighted mean:
+
+$$
+    \text{mean}(\bar{X}_g; N_g)
+    = \frac{\sum\limits_g N_g \bar{X}_g}{\sum\limits_g N_g}
+    = \sum\limits_g n_g \bar{X}_g
+    = \sum\limits_g \frac{\bar{X}_g}{f_g},
+$$
+
+where $n_g=\frac{N_g}{N}=\frac{1}{f_g}$. Additionally, we will often write the sum in the denominator as $N$. The first four non-central moments of $\bar{\bar{X}}$ are similar to those for $\bar{X}_g$ but with $N_g$ replaced with $N$:
+
+1. $\mu'_1(\bar{\bar{X}}) = \mu$
+2. $\mu'_2(\bar{\bar{X}}) = \frac{\sigma^2}{N} + \mu^2$
+3. $\mu'_3(\bar{\bar{X}}) = \frac{\gamma\sigma^3}{N^2} + \frac{3\mu\sigma^2}{N} + \mu^3$
+4. $\mu'_4(\bar{\bar{X}}) = \frac{\kappa \sigma^4}{N^3} + \frac{3 \sigma^4}{N^2} + \frac{4 \gamma \mu \sigma^3}{N^2} + \frac{6 \mu^2 \sigma^2}{N} + \mu^4$
+
+Unfortunately, $\bar{X}_g$ and $\bar{\bar{X}}$ are not independent, though there is a decomposition that can help. We can use the definition $\bar{\bar{X}} = \sum n_{g'}\bar{X}_{g'}$ to decompose $\bar{\bar{X}}$ into independent pieces. For any particular $g$, 
+
+$$
+\bar{\bar{X}} = n_g \bar{X}_g + (1-n_g) \bar{X}_{-g},
+$$
+
+where $\bar{X}_{-g} = \sum\limits_{g'\ne g} n_{g'} \bar{X}_{g'}$ is the mean of the non-$g$ samples. Similarly, for any particular $g$ and $h$ such that $g\ne h$,
+
+$$
+\bar{\bar{X}} = n_g \bar{X}_g + n_h \bar{X}_h + (1-n_g-n_h) \bar{X}_{-gh},
+$$
+
+Although this creates a certain amount of algebra, it also simplifies expressions like $\bar{X}_g - \bar{\bar{X}}$:
+
+$$
+\begin{aligned}
+\bar{X}_g - \bar{\bar{X}} &= \bar{X}_g - \left( n_g \bar{X}_g + (1-n_g) \bar{X}_{-g} \right) \\
+&= (1-n_g)\left( \bar{X}_g - \bar{X}_{-g} \right)
+\end{aligned}
+$$
+
+Since the two terms are now independent, we can use [cumulants](https://en.wikipedia.org/wiki/Cumulant) to calculate the central moments of $\bar{X}_g - \bar{\bar{X}}$, which is the same as calculating the non-central moments since this expression has zero expectation. Also from [the initial blog post](../estimating-population-mean-variance-from-min-mean-max/), we know that
+
+1. $\kappa_1(\bar{X}_g) = \kappa_1(X) = \mu$
+2. $\kappa_2(\bar{X}_g) = \frac{\kappa_2(X)}{N_g} = \frac{\sigma^2}{N_g}$
+3. $\kappa_3(\bar{X}_g) = \frac{\kappa_3(X)}{N_g^2} = \frac{\gamma\sigma^3}{N_g^2}$
+4. $\kappa_4(\bar{X}_g) = \frac{\kappa_4(X)}{N_g^3} = \frac{\kappa\sigma^4}{N_g^3}$
+
+and
+
+1. $\kappa_1(\bar{X}_{-g}) = \kappa_1(X) = \mu$
+2. $\kappa_2(\bar{X}_{-g}) = \frac{\kappa_2(X)}{N-N_g} = \frac{\sigma^2}{N-N_g}$
+3. $\kappa_3(\bar{X}_{-g}) = \frac{\kappa_3(X)}{(N-N_g)^2} = \frac{\gamma\sigma^3}{(N-N_g)^2}$
+4. $\kappa_4(\bar{X}_{-g}) = \frac{\kappa_4(X)}{(N-N_g)^3} = \frac{\kappa\sigma^4}{(N-N_g)^3}$.
+
+We can combine the two independent pieces and scaling fraction to find:
+
+$$
+\begin{aligned}
+\kappa_n(\bar{X}_g - \bar{\bar{X}})
+
+&= \kappa_n\left((1-n_g)\left( \bar{X}_g - \bar{X}_{-g} \right)\right) \\
+&= (1-n_g)^n \kappa_n\left(\bar{X}_g - \bar{X}_{-g}\right) \\
+&= (1-n_g)^n \left( \kappa_n\left(\bar{X}_g) +(-1)^n \kappa_n(\bar{X}_{-g})\right) \right)
+\end{aligned}
+$$
+
+We finally enumerate the cumulants of $\bar{X}_g - \bar{\bar{X}}$:
+
+1. $\kappa_1(\bar{X}_g - \bar{\bar{X}}) = (1-n_g)(\mu-\mu) = 0$
+2. $\kappa_2(\bar{X}_g - \bar{\bar{X}}) = \frac{\sigma^2}{N}(1-n_g)^2\left(\frac{1}{n_g} + \frac{1}{1-n_g}\right) = \frac{\sigma^2}{N} \frac{1-n_g}{n_g}$
+3. $\kappa_3(\bar{X}_g - \bar{\bar{X}}) = \frac{\gamma\sigma^3}{N^2} (1-n_g)^3 \left(\frac{1}{n_g^2} - \frac{1}{(1-n_g)^2}\right) = \frac{\gamma\sigma^3}{N^2} \frac{(1-n_g)(1-2n_g)}{n_g^2}$
+4. $\kappa_4(\bar{X}_g - \bar{\bar{X}}) = \frac{\kappa\sigma^4}{N^3} (1-n_g)^4 \left(\frac{1}{n_g^3} + \frac{1}{(1-n_g)^3} \right) = \frac{\kappa\sigma^4}{N^3} \frac{(1-n_g)(1-3n_g+3n_g^2)}{n_g^3}$.
+
+and we can invert these formulas to determine the non-central moments $\mu'_m$ (equal to the central moments)
+
+1. $\mu'_1(\bar{X}_g - \bar{\bar{X}}) = 0$
+2. $\mu'_2(\bar{X}_g - \bar{\bar{X}}) = \kappa_2(\bar{X}_g - \bar{\bar{X}}) = \frac{\sigma^2}{N} \frac{1-n_g}{n_g}$
+3. $\mu'_3(\bar{X}_g - \bar{\bar{X}}) = \kappa_3(\bar{X}_g - \bar{\bar{X}}) = \frac{\gamma\sigma^3}{N^2} \frac{(1-n_g)(1-2n_g)}{n_g^2}$
+4. $\mu'_4(\bar{X}_g - \bar{\bar{X}}) = \kappa_4(\bar{X}_g - \bar{\bar{X}}) + 3 \kappa_2(\bar{X}_g - \bar{\bar{X}})^2 = \frac{\kappa\sigma^4}{N^3} \frac{(1-n_g)(1-3n_g+3n_g^2)}{n_g^3} + 3\left(\frac{\sigma^2}{N} \frac{1-n_g}{n_g} \right)^2$ $=\frac{\sigma^4}{N^3}\frac{1-n_g}{n_g^3}\left( (1-3n_g+3n_g^2)\kappa + 3Nn_g(1-n_g) \right)$
+
+We have now proved
+
+## Lemma (expectation of squared deviance)
+
+$$
+\begin{equation}
+E[(\bar{X}_g-\bar{\bar{X}})^2] = \frac{\sigma^2}{N} \frac{1-n_g}{n_g}
+\end{equation}
+$$
+
+## Theorem (expectation)
+
+Given the lemma, we can see that the quantity $\frac{N n_g}{1-n_g} (\bar{X}_g-\bar{\bar{X}})^2$ is *an* unbiased estimator of $\sigma^2$, just not a very efficient one. 
+
+In fact, let $u$ be a probability measure on $\{1, \ldots, G\}$, i.e. $\sum u_g = 1$.
+If we define $V_u$ by:
+
+$$
+\begin{equation}
+V_u = N \sum\limits_g u_g\frac{N_g (\bar{X}_g - \bar{\bar{X}})^2}{N-N_g}
+\end{equation}
+$$
+
+Then we also have:
+
+$$
+\begin{equation}
+E[V_u] = \sigma^2
+\end{equation}
+$$
+
+Thus, it remains unclear which, out of all probability measures $a$
+is the most natural or efficient. Is it $u_g = \frac{1}{G}$ or $u_g = \frac{N_g}{N}$, $u_g = \frac{N-N_g}{N(G-1)}$, $u_g = \frac{1/N_g}{\sum 1/N_g}$, $u_g = \frac{\frac{N-N_g}{N_g}}{\sum \frac{N-N_g}{N_g}}$ or something else?
+
+I rather like the $u_g = \frac{N-N_g}{N(G-1)}$ case, which yields:
+
+$$
+\begin{equation}
+V' = \frac{1}{G - 1} \sum\limits_g N_g (\bar{X}_g - \bar{\bar{X}})^2
+\end{equation}
+$$
+
+
+## Lemma (variance)
+
+Even though we are able to calculate the necessary individual moments of $(\bar{X}_g - \bar{\bar{X}})^2$ necessary to calculate $\text{Var}(V_u) = E[V_u^2] - E[V_u]^2$, we don't yet have expressions from the cross-terms, since $(\bar{X}_g - \bar{\bar{X}})^2$ and $(\bar{X}_h - \bar{\bar{X}})^2$ are not independent, hence we can't use cumulants to calculate them directly. The cross-term we need, for $g\ne h$, is $E[(\bar{X}_g - \bar{\bar{X}})^2(\bar{X}_h - \bar{\bar{X}})^2]$. We can use the decomposition $\bar{\bar{X}} = n_g \bar{X}_g + n_h \bar{X}_h + (1-n_g-n_h) \bar{X}_{-gh}$ to calculate 
+
+$$
+\begin{aligned}
+& (\bar{X}_g - \bar{\bar{X}})^2(\bar{X}_h - \bar{\bar{X}})^2 \\
+&= \left(\bar{X}_g - \left( n_g \bar{X}_g + n_h \bar{X}_h + (1-n_g-n_h) \bar{X}_{-gh} \right) \right)^2\left(\bar{X}_h - \left( n_g \bar{X}_g + n_h \bar{X}_h + (1-n_g-n_h) \bar{X}_{-gh} \right) \right)^2 \\
+&= \left((1-n_g)\bar{X}_g - n_h \bar{X}_h - (1-n_g-n_h) \bar{X}_{-gh} \right)^2\left(- n_g \bar{X}_g + (1-n_h)\bar{X}_h - (1-n_g-n_h) \bar{X}_{-gh} \right)^2
+\end{aligned}
+$$
+
+We performed these manipulations using [SageMath - Open-Source Mathematical Software System](https://www.sagemath.org/)
+
+```{sage}
+N, n_g, n_h = var("N n_g n_h")
+parent_ring = (n_g/n_h).parent()
+P.<X_g, X_h, X_gh> = parent_ring[]
+Xbar = n_g * X_g + n_h * X_h + (1 - n_g - n_h) * X_gh
+cross_term = (X_g - Xbar)^2 * (X_h - Xbar)^2
+cross_term
+```
+
+We can then define the statistical expectation function. Bear with me because I don't know SageMath well enough to create the necessary morphisms of mathematical structures needed to define expectation over this ring, but just transforming the terms is enough.
+
+```{sage}
+def expectation(expression):
+    "expression should be an element of P"
+    sizes = {
+        0: N*n_g, # X_g
+        1: N*n_h, # X_h
+        2: N*(1-n_g-n_h) # X_gh
+    }
+    result = 0
+    for coefficient, monomial in expression:
+        new_term = coefficient
+        for index, exponent in enumerate(monomial.exponents()[0]):
+            new_term *= sample_moment(exponent, sizes[index])
+        result += new_term
+    return result
+show(expectation(X_g*X_h*X_gh^2))
+```
+
+Now that this works, we can calculate the expectation of the cross term.
+
+```{sage}
+cross_term_exp = expectation(cross_term)
+cross_term_exp = cross_term_exp.full_simplify()
+show(cross_term_exp)
+```
+
+From this we get
+
+$$
+\begin{aligned}
+& E\left[(\bar{X}_g - \bar{\bar{X}})^2(\bar{X}_h - \bar{\bar{X}})^2\right] \\
+&= \frac{\sigma^4}{N^3 n_g n_h}\left( (n_g + n_h - 3 n_g n_h)\kappa + N(1 - n_g - n_h + 3 n_g n_h) \right)
+\end{aligned}
+$$
+
+## Theorem (variance)
+
+We are now ready to calculate the variance of our family of estimators
+
+$$
+\begin{equation}
+V_u = N \sum\limits_g u_g\frac{n_g (\bar{X}_g - \bar{\bar{X}})^2}{1-n_g}
+\end{equation}
+$$
+
+Starting from a definition of variance,
+
+$$
+\begin{aligned}
+\text{Var}(V_u) &= E[V_u^2] - E[V_u]^2 \\
+&= E\left[
+    N \sum\limits_g u_g\frac{n_g (\bar{X}_g - \bar{\bar{X}})^2}{1-n_g}
+    N \sum\limits_h u_h\frac{n_h (\bar{X}_h - \bar{\bar{X}})^2}{1-n_h}
+\right] - \sigma^4 \\
+&= N^2\sum\limits_{g,h=1}^{G} \frac{u_g u_h n_g n_h}{(1-n_g)(1-n_h)} E\left[
+    (\bar{X}_g - \bar{\bar{X}})^2
+    (\bar{X}_h - \bar{\bar{X}})^2
+\right] - \sigma^4 \\
+&= N^2\left(
+    \sum\limits_{g=h} \frac{u_g^2 n_g^2}{(1-n_g)^2} E\left[
+    (\bar{X}_g - \bar{\bar{X}})^4
+\right]
+    +
+    \sum\limits_{g\ne h} \frac{u_g u_h n_g n_h}{(1-n_g)(1-n_h)} E\left[
+    (\bar{X}_g - \bar{\bar{X}})^2
+    (\bar{X}_h - \bar{\bar{X}})^2
+\right]
+\right) - \sigma^4 \\
+
+&= N^2\biggl(
+    \sum\limits_{g=h} \frac{u_g^2 n_g^2}{(1-n_g)^2} \frac{\sigma^4}{N^3}\frac{1-n_g}{n_g^3}\left( (1-3n_g+3n_g^2)\kappa + 3Nn_g(1-n_g) \right) \\
+    &\qquad+
+    \sum\limits_{g\ne h} \frac{u_g u_h n_g n_h}{(1-n_g)(1-n_h)} \frac{\sigma^4}{N^3 n_g n_h}\left( (n_g + n_h - 3 n_g n_h)\kappa + N(1 - n_g - n_h + 3 n_g n_h) \right)
+\biggr) - \sigma^4 \\
+
+&= \frac{\sigma^4}{N}\biggl(
+    \sum\limits_{g=h} \frac{u_g^2}{n_g(1-n_g)} \left( (1-3n_g+3n_g^2)\kappa + 3Nn_g(1-n_g) \right) \\
+    &\qquad+
+    \sum\limits_{g\ne h} \frac{u_g u_h}{(1-n_g)(1-n_h)} \left( (n_g + n_h - 3 n_g n_h)\kappa + N(1 - n_g - n_h + 3 n_g n_h) \right)
+    - N
+\biggr) \\
+
+&= \frac{\sigma^4}{N}\biggl(
+    -N +
+    \sum\limits_{g=h} u_g^2 \left( \left(\frac{1}{n_g(1-n_g)}-3\right)\kappa + 3N \right) \\
+    &\qquad+
+    \sum\limits_{g\ne h} u_g u_h \left( \left(-3 + \frac{2}{1-n_g} + \frac{2}{1-n_h} - \frac{1}{(1-n_g)(1-n_h)} \right)\kappa + N\left(3 - \frac{2}{1-n_g} - \frac{2}{1-n_h} + \frac{2}{(1-n_g)(1-n_h)} \right) \right)
+\biggr) \\
+\end{aligned}
+$$
+
+We attempt to decompose these cross terms into ones that will factor through the sums.
+
+$$
+\begin{aligned}
+& \sum\limits_{g\ne h} u_g u_h \left( \left(-3 + \frac{2}{1-n_g} + \frac{2}{1-n_h} - \frac{1}{(1-n_g)(1-n_h)} \right)\kappa + N\left(3 - \frac{2}{1-n_g} - \frac{2}{1-n_h} + \frac{2}{(1-n_g)(1-n_h)} \right) \right) \\
+&= \sum\limits_{g\ne h} u_g u_h \left( \left(1 - \left(\frac{1}{1-n_g} - 2\right)\left(\frac{1}{1-n_h} - 2\right) \right)\kappa + N\left( 1 + 2\left(\frac{1}{1-n_g} - 1\right)\left(\frac{1}{1-n_h} - 1\right) \right) \right) \\
+
+&= \sum\limits_{g, h} u_g u_h \left( \left(1 - \left(\frac{1}{1-n_g} - 2\right)\left(\frac{1}{1-n_h} - 2\right) \right)\kappa + N\left( 1 + 2\left(\frac{1}{1-n_g} - 1\right)\left(\frac{1}{1-n_h} - 1\right) \right) \right) \\
+    &\qquad -\sum\limits_{g=h} u_g^2 \left( \left(1 - \left(\frac{1}{1-n_g} - 2\right)^2 \right)\kappa + N\left( 1 + 2\left(\frac{1}{1-n_g} - 1\right)^2 \right) \right) \\
+
+&= (N+\kappa)\left(\sum\limits_g u_g\right)^2 - \kappa\left(\sum\limits_g u_g\left(\frac{1}{1-n_g} - 2 \right) \right)^2  + 2N \left(\sum\limits_g u_g\left(\frac{1}{1-n_g} - 1 \right) \right)^2\\
+    &\qquad -\sum\limits_g u_g^2 \left( \left(1 - \left(\frac{1}{1-n_g} - 2\right)^2 \right)\kappa + N\left( 1 + 2\left(\frac{1}{1-n_g} - 1\right)^2 \right) \right) \\
+
+&= N+\kappa - \kappa\left(\sum\limits_g u_g \frac{1}{1-n_g} - 2 \right)^2  + 2N \left(\sum\limits_g u_g \frac{1}{1-n_g} - 1 \right)^2\\
+    &\qquad -\sum\limits_g u_g^2 \left( \left(1 - \left(\frac{1}{1-n_g} - 2\right)^2 \right)\kappa + N\left( 1 + 2\left(\frac{1}{1-n_g} - 1\right)^2 \right) \right) \\
+
+\end{aligned}
+$$
+
+
+
+
+
+more more more
+
+$$
+\begin{aligned}
+\text{Var}(V_u) &= \frac{\sigma^4}{N}\biggl(
+    -N +
+    \sum\limits_{g=h} u_g^2 \left( \left(\frac{1}{n_g(1-n_g)}-3\right)\kappa + 3N \right) \\
+    &\qquad+
+    \sum\limits_{g\ne h} u_g u_h \left( \left(-3 + \frac{2}{1-n_g} + \frac{2}{1-n_h} - \frac{1}{(1-n_g)(1-n_h)} \right)\kappa + N\left(3 - \frac{2}{1-n_g} - \frac{2}{1-n_h} + \frac{2}{(1-n_g)(1-n_h)} \right) \right)
+\biggr) \\
+
+&= \frac{\sigma^4}{N}\biggl(
+    -N + N + \kappa 
+    + \sum\limits_{g=h} u_g^2 \left(
+        \left(\frac{1}{n_g(1-n_g)}-3-1+\left(\frac{1}{1-n_g} - 2\right)^2 \right)\kappa
+        +
+        \left(3-1-2\left(\frac{1}{1-n_g} - 1\right)^2 \right)N
+    \right) \\
+    &\qquad- \kappa\left(\sum\limits_g u_g \frac{1}{1-n_g} - 2 \right)^2  + 2N \left(\sum\limits_g u_g \frac{1}{1-n_g} - 1 \right)^2
+\biggr) \\
+
+&= \frac{\sigma^4}{N}\biggl(
+    \left(1 - \left(\sum\limits_g u_g \frac{1}{1-n_g} - 2 \right)^2 \right)\kappa 
+    + 2 \left(\sum\limits_g u_g \frac{1}{1-n_g} - 1 \right)^2 N \\
+    &\qquad+ \sum\limits_{g} u_g^2 \left(
+        \left(\frac{1}{n_g(1-n_g)}-3-1+\left(\frac{1}{1-n_g} - 2\right)^2 \right)\kappa
+        +
+        \left(3-1-2\left(\frac{1}{1-n_g} - 1\right)^2 \right)N
+    \right)
+\biggr)
+\end{aligned}
+$$
+
+Let's try minimizing $\text{Var}(V_u)$ subject to $\sum u_g = 1$ using Lagrange multipliers on the objective function $f(u, \lambda) = \text{Var}(V_u) - \lambda (\sum u_g - 1)$.
+
+As usual, the derivative with respect to $\lambda$ is just our constraint, and the interesting parts are
+
+$$
+\begin{aligned}
+0 &= \frac{\partial f}{\partial u_g} \\
+&= - \lambda + \frac{\sigma^4}{N} \biggl(
+    \left(-2 \left(\sum\limits_h \frac{u_h}{1-n_h} - 2 \right) \frac{1}{1-n_g} \right) \kappa
+    +
+    \left(4 \left(\sum\limits_h \frac{u_h}{1-n_h} - 1 \right) \frac{1}{1-n_g} \right) N \\
+    &\qquad + 2 \left(
+        \left(\frac{1}{n_g(1-n_g)}+\left(\frac{1}{1-n_g} - 2\right)^2 - 4\right)\kappa
+        +
+        2 \left(1-\left(\frac{1}{1-n_g} - 1\right)^2 \right)N
+    \right) u_g
+\biggr)
+\end{aligned}
+$$
+
+
+Defining $q = \sum\limits_h \frac{u_h}{1-n_h}$ just to clean up the mess, we can almost solve it for $u_g$ except that $q$ depends on the $u_g$.
+
+$$
+\begin{aligned}
+u_g &= \frac{\frac{\lambda N}{\sigma^4} + \frac{2}{1-n_g}\left((q-2)\kappa - 2(q-1)N\right)}{2\left( \frac{(1-2n_g)^2}{n_g(1-n_g)^2}\kappa + \frac{2(1-2n_g)}{(1-n_g)^2}N \right)} \\
+
+&= \frac{\frac{\lambda N}{2\sigma^4}(1-n_g) + \left((q-2)\kappa - 2(q-1)N\right)}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g(1-n_g)}{1-2n_g} \\
+
+&= \frac{2\Lambda(1-n_g) + \left((q-2)\kappa - 2(q-1)N\right)}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g(1-n_g)}{1-2n_g} \\
+\end{aligned}
+$$
+
+In the last equality, we have substituted $\Lambda = \frac{\lambda N}{4\sigma^4}$.
+
+Of course, we can use these expressions to create an equation for $q$ too:
+
+$$
+\begin{aligned}
+q &= \sum\limits_g \left( \frac{\frac{\lambda N}{2\sigma^4}(1-n_g) + \left((q-2)\kappa - 2(q-1)N\right)}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g}{1-2n_g} \right) \\
+&=
+    q(\kappa - 2N) \sum\limits_g \left( \frac{1}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g}{1-2n_g} \right)
+    +
+    \sum\limits_g \left( \frac{\frac{\lambda N}{2\sigma^4}(1-n_g) -2(\kappa - N)}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g}{1-2n_g} \right)
+\end{aligned}
+$$
+
+So, we have
+
+$$
+\begin{aligned}
+q &= \frac{
+    \sum\limits_g \left( \frac{\frac{\lambda N}{2\sigma^4}(1-n_g) -2(\kappa - N)}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g}{1-2n_g} \right)
+}{
+    1 - (\kappa - 2N) \sum\limits_g \left( \frac{1}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g}{1-2n_g} \right)
+} \\
+
+&= \frac{
+    \sum\limits_g \left( \frac{2\Lambda(1-n_g) -2(\kappa - N)}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g}{1-2n_g} \right)
+}{
+    1 - (\kappa - 2N) \sum\limits_g \left( \frac{1}{(1-2n_g)\kappa + 2 n_g N} \frac{n_g}{1-2n_g} \right)
+}
+\end{aligned}
+$$
+
+In the last equality, we have substituted $\Lambda = \frac{\lambda N}{4\sigma^4}$.
+
+## Check that $N_g=1 \forall g$ case reduces to simple sampling.
+
+In this case, $G = N$, $n_g = \frac{1}{N}$. 
+
+$$
+\begin{aligned}
+q &= \Lambda \frac{N(2N^2-2N\kappa + N - 1)}{(N-1)(N^2+2N-2\kappa)}
+\end{aligned}
+$$
+
+It is clear that, since $u_g$ is constant in $g$, that $u_g = \frac{1}{N}$, and we are left with
+
+$$
+\begin{equation}
+V_u = \frac{1}{N-1} \sum\limits_g (\bar{X}_g - \bar{\bar{X}})^2
+\end{equation}
+$$
+
+and
+
+$$
+\begin{aligned}
+\text{Var}(V_u)
+&= \frac{\sigma^4}{N}\biggl(
+    \frac{N\kappa + 2N -\kappa}{N-1}
+\biggr) \\
+&= \frac{\sigma^4}{N}\biggl(
+    \kappa + \frac{2N}{N-1}
+\biggr)
+\end{aligned}
+$$
+
+This agrees with our results in the [simple sampling case](../estimating-population-mean-variance-from-min-mean-max/). It doesn't mean that our results here are correct, but it is a reassuring check.
+
+
+## Check $\kappa = 0$ case
+
+$$
+\begin{aligned}
+q &= \frac{
+    \sum\limits_g \left( \frac{\frac{\lambda N}{2\sigma^4}(1-n_g) +2N}{2 n_g N} \frac{n_g}{1-2n_g} \right)
+}{
+    1 + 2N \sum\limits_g \left( \frac{1}{2 n_g N} \frac{n_g}{1-2n_g} \right)
+} \\
+&= \frac{
+    \sum\limits_g \left( \frac{\frac{\lambda}{4\sigma^4}(1-n_g) +1}{1-2n_g} \right)
+}{
+    1 + \sum\limits_g \left( \frac{1}{1-2n_g} \right)
+}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+u_g &= \frac{\frac{\lambda N}{2\sigma^4}(1-n_g) + 2(1-q)N}{2 n_g N} \frac{n_g(1-n_g)}{1-2n_g} \\
+&= \frac{\frac{\lambda}{4\sigma^4}(1-n_g) + (1-q)}{1-2n_g} (1-n_g)
+\end{aligned}
+$$
+
+Let's check the constraint that $\sum u_g = 1$. Since the only free parameter is $\frac{\lambda}{4\sigma^2}$, we will rename that combination $\Lambda$. Thus we start with:
+
+$$
+\begin{aligned}
+u_g &= \frac{\Lambda(1-n_g) + (1-q)}{1-2n_g} (1-n_g) \\
+q &= \frac{
+    \sum\limits_g \frac{\Lambda(1-n_g) +1}{1-2n_g}
+}{
+    1 + \sum\limits_g \frac{1}{1-2n_g}
+}
+\end{aligned}
+$$
+
+Since $q$ appears here only as $1-q$, we try to simplify this first.
+
+$$
+\begin{aligned}
+(1-q) \left( 1 + \sum\limits_g \frac{1}{1-2n_g} \right)
+
+&= \left( 1 + \sum\limits_g \frac{1}{1-2n_g} \right) - \sum\limits_g \frac{\Lambda(1-n_g) +1}{1-2n_g} \\
+
+&= 1 - \Lambda \sum\limits_g \frac{1-n_g}{1-2n_g} \\
+1-q &= \frac{
+    1 - \Lambda \sum\limits_g \frac{1-n_g}{1-2n_g}
+}{
+    1 + \sum\limits_g \frac{1}{1-2n_g}
+}
+\end{aligned}
+$$
+
+We can try to clean up $u_g$ a little.
+
+$$
+\begin{aligned}
+u_g &= (1-n_g)\frac{\Lambda(1-n_g) + (1-q)}{1-2n_g} \\
+&= (1-n_g)\frac{
+    \Lambda(1-n_g) + \frac{
+        1 - \Lambda \sum\limits_h \frac{1-n_h}{1-2n_h}
+    }{
+        1 + \sum\limits_h \frac{1}{1-2n_h}
+    }
+}{1-2n_g} \\
+&= (1-n_g)\frac{
+    \Lambda(1-n_g)\left(1 + \sum\limits_h \frac{1}{1-2n_h} \right)
+    + 1 - \Lambda \sum\limits_h \frac{1-n_h}{1-2n_h}
+}{
+    (1-2n_g)\left(1 + \sum\limits_h \frac{1}{1-2n_h} \right)
+} \\
+&= (1-n_g)\frac{
+    1 + \Lambda\left[
+        (1-n_g)\left(1 + \sum\limits_h \frac{1}{1-2n_h} \right)
+        - \sum\limits_h \frac{1}{2}\left(1 -  \frac{1}{1-2n_h}\right)
+    \right]
+}{
+    (1-2n_g)\left(1 + \sum\limits_h \frac{1}{1-2n_h} \right)
+} \\
+&= (1-n_g)\frac{
+    1 + \frac{\Lambda}{2}\left[
+        \left( 1-2n_g \right) \sum\limits_h \frac{1}{1-2n_h}
+        + 2(1-n_g) - G
+    \right]
+}{
+    (1-2n_g)\left(1 + \sum\limits_h \frac{1}{1-2n_h} \right)
+} \\
+\end{aligned}
+$$
+
+Let's define the combination $\phi(z) = \sum\limits_h \frac{1}{1-zn_h}$ so that we have
+
+$$
+\begin{aligned}
+u_g &=(1-n_g)\frac{
+    1 + \frac{\Lambda}{2}\left[
+        \left( 1-2n_g \right) \phi(2)
+        + 2(1-n_g) - G
+    \right]
+}{
+    (1-2n_g)\left(1 + \phi(2) \right)
+} \\
+
+&=\frac{1}{1 + \phi(2)}(1-n_g)\frac{
+    1 + \frac{\Lambda}{2}\left[
+        \left( 1-2n_g \right) \phi(2)
+        + 2(1-n_g) - G
+    \right]
+}{
+    1-2n_g
+} \\
+
+&=\frac{1}{1 + \phi(2)}(1-n_g)\left[
+    \frac{
+        1 - \frac{\Lambda G}{2} + \Lambda(1 - n_g) + \frac{\Lambda\phi(2)}{2}(1-2n_g)
+    }{
+        1-2n_g
+    }
+\right] \\
+
+&=\frac{1}{1 + \phi(2)}(1-n_g)\left[
+    \frac{
+        1 - \frac{\Lambda G}{2} + \frac{\Lambda}{2}((1 - 2n_g) - 1) + \frac{\Lambda\phi(2)}{2}(1-2n_g)
+    }{
+        1-2n_g
+    }
+\right] \\
+
+&=\frac{1}{1 + \phi(2)}(1-n_g)\left[
+    \frac{
+        1 - \frac{\Lambda(G + 1)}{2} + \frac{\Lambda}{2}(1+\phi(2))((1 - 2n_g)
+    }{
+        1-2n_g
+    }
+\right] \\
+
+&=\frac{1}{1 + \phi(2)}(1-n_g)\left[
+    \left(1 - \frac{\Lambda(G + 1)}{2}\right)\frac{1}{1-2n_g}
+    +
+    \frac{\Lambda}{2}(1+\phi(2))
+\right] \\
+
+&=
+    \frac{1 - \frac{\Lambda(G + 1)}{2}}{1+\phi(2)}\cdot\frac{1-n_g}{1-2n_g}
+    +
+    \frac{\Lambda}{2}(1-n_g) \\
+
+&=
+    \frac{2 - \Lambda(G + 1)}{4(1+\phi(2))}\cdot\left(1 - \frac{1}{1-2n_g}\right)
+    +
+    \frac{\Lambda}{2}(1-n_g)
+\end{aligned}
+$$
+
+Now we can calculate the sum
+$$
+\begin{aligned}
+1 &= \sum\limits_g u_g \\
+
+&= \sum\limits_g \left[
+    \frac{2 - \Lambda(G + 1)}{4(1+\phi(2))}\cdot\left(1 - \frac{1}{1-2n_g}\right)
+    +
+    \frac{\Lambda}{2}(1-n_g)
+\right] \\
+
+&= 
+    \frac{2 - \Lambda(G + 1)}{4(1+\phi(2))}\left(G - \phi(2)) \right)
+    +
+    \frac{\Lambda}{2} \left(G-1\right) \\
+
+4(1+\phi(2)) &=
+    \left(2 - \Lambda(G+1)\right)(G-\phi(2)) + \Lambda\cdot 2(G-1)(1+\phi(2)) \\
+
+&=
+    2(G-\phi(2)) + \Lambda \left(2(G-1)(1+\phi(2)) - (G+1)(G-\phi(2))\right) \\
+
+6\phi(2) - 2(G-1) &=  \Lambda \left(2(G-1)(1+\phi(2)) - (G+1)(G-\phi(2))\right) \\
+
+\Lambda &= \frac{
+    6\phi(2) - 2(G-1) + (G+1)(G-\phi(2))
+}{
+    2(G-1)(1+\phi(2))
+} \\
+
+&= \frac{
+    (5-G)\phi(2) + G(G-1) + 2
+}{
+    2(G-1)(1+\phi(2))
+}
+\end{aligned}
+$$

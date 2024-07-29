@@ -7,8 +7,8 @@ website:
   description: "A blog about data science, programming, and reflection"
   open-graph:
     locale: en_US
-  cookie-consent:
-    type: express
+  # cookie-consent:
+  #   type: express
   comments:
     utterances: 
       repo: bvancil/blog
