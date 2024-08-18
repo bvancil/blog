@@ -12,9 +12,18 @@ We load a number of Julia packages to process tabular data, work with random dis
 
 ```{julia}
 # packages
+using CategoricalArrays
 using DataFrames
 using DataFramesMeta
 using Distributions
+using GLM
+# using Lathe
+# using MLBase
+# using Plots
+using StableRNGs
+using StatsModels
+# using StatsPlots
+
 # built-in packages
 using Random
 ```
@@ -127,22 +136,28 @@ flowchart LR
 
 ```{julia}
 # Returns parameters governing all observation
-function universal_parameters(n_skills)
+function universal_parameters(rng, n_skills, p_protected, β_protected)
     universal_params = DataFrame(
+        # Location parameters
         μ_lo = 10.3,
         μ_hi = 12.8,
+        # Coefficient of variation
         cv_lo = 0.03,
         cv_hi = 0.15,
-        n_skills = n_skills
+        # Number of latent skills
+        n_skills = n_skills,
+        # Protected characteristic
+        p_protected = p_protected,
+        β_protected = β_protected
     )
     β_names = [Symbol("β_skill_$i") for i in 1:n_skills]
-    β = rand(Normal(), (1, n_skills))
+    β = rand(rng, Normal(), (1, n_skills))
     insertcols!(universal_params, (β_names .=> eachcol(β))...)
 end
 
 # Returns group parameters for n_groups, sorted in reverse by frequency
-function group_parameters(n_groups, universal_params)
-    relative_group_frequency = rand(Uniform(), n_groups)
+function group_parameters(rng, n_groups, universal_params)
+    relative_group_frequency = rand(rng, Uniform(), n_groups)
     # Normalize to get probabilities
     group_probabilities = relative_group_frequency ./ sum(relative_group_frequency)
     group_probabilities = reverse(sort(group_probabilities))
@@ -161,53 +176,71 @@ function group_parameters(n_groups, universal_params)
 end
 
 # Generates groups from parameters and number of people
-function groups(group_params, n_people)
-    group = rand(Categorical(group_params[!, :p_group]), n_people)
+function groups(rng, group_params, n_people)
+    group = rand(rng, Categorical(group_params[!, :p_group]), n_people)
     group = sort(group)
-    DataFrame(id_group = group)
+    DataFrame(id_group = categorical(group))
 end
 
-function skills(n_skills, n_people)
+function protected(rng, group_params, n_people)
+    p_protected = minimum(group_params[:, :p_protected])
+    protected_group = rand(rng, Categorical([1 - p_protected, p_protected]), n_people) .- 1
+    protected_group = protected_group .- mean(protected_group)
+    DataFrame(cind_protected = protected_group)
+end
+
+function skills(rng, n_skills, n_people)
     skill_names = [Symbol("skill_$i") for i in 1:n_skills]
-    skill_data = rand(Normal(), (n_people, n_skills))
+    skill_data = rand(rng, Normal(), (n_people, n_skills))
     DataFrame(skill_data, skill_names)
 end
 
-function private_parameters(n_people, group_params)
-    n_skills = min(group_params(:, :n_skills))
-    private_params = groups(group_params, n_people)
-    DataFrames.hcat!(private_params, skills(n_skills, n_people))
+function private_parameters(rng, n_people, group_params)
+    n_skills = minimum(group_params[:, :n_skills])
+    private_params = groups(rng, group_params, n_people)
+    DataFrames.hcat!(private_params, protected(rng, group_params, n_people))
+    if 0 < n_skills
+        DataFrames.hcat!(private_params, skills(rng, n_skills, n_people))
+    end
     private_params = innerjoin(private_params, group_params, on=:id_group)
     
     μ = private_params[:, :μ]
-    β_skill = Matrix(select(private_params, Cols(x -> startswith(x, "β_skill_"))))'[:, 1]
-    X_skill = Matrix(select(private_params, Cols(x -> startswith(x, "skill_"))))
-    expected_log_salary = μ + X_skill * β_skill
+    cind_protected = private_params[:, :cind_protected]
+    β_protected = minimum(private_params[:, :β_protected])
+    expected_log_salary = μ + cind_protected * β_protected
+    if 0 < n_skills
+        β_skill = Matrix(select(private_params, Cols(x -> startswith(x, "β_skill_"))))'[:, 1]
+        X_skill = Matrix(select(private_params, Cols(x -> startswith(x, "skill_"))))
+        expected_log_salary += X_skill * β_skill
+    end
     σ = private_params[:, :σ]
-    log_salary = [rand(Normal(μ1, σ1)) for (μ1 , σ1) in zip(expected_log_salary, σ)]
+    log_salary = [rand(rng, Normal(μ1, σ1)) for (μ1 , σ1) in zip(expected_log_salary, σ)]
 
-    insertcols!(private_params, :expected_log_salary => expected_log_salary, :log_salary => log_salary)
+    insertcols!(private_params, :expected_log_salary => expected_log_salary, :val_log_salary => log_salary)
     private_params
 end
 
-function public_parameters(private_params, n_observable_skills, skill_noise, salary_noise)
+function public_parameters(rng, private_params, n_observable_skills, skill_noise, salary_noise)
     n_people = nrow(private_params)
     observable_skill_names = [Symbol("skill_$i") for i in 1:n_observable_skills]
-    public_params = select(private_params, :id_group, observable_skill_names..., :log_salary)
+    public_params = select(private_params, :id_group, :cind_protected, observable_skill_names..., :val_log_salary)
     # add noise
-    transform!(public_params, [:log_salary] => (s -> s .+ rand(Normal(0, salary_noise), n_people)) => :log_salary)
-    transform!(public_params, observable_skill_names .=> Ref(s -> s .+ rand(Normal(0, skill_noise), n_people)) .=> observable_skill_names)
+    transform!(public_params, [:val_log_salary] => (s -> s .+ rand(rng, Normal(0, salary_noise), n_people)) => :val_log_salary)
+    transform!(public_params, observable_skill_names .=> Ref(s -> s .+ rand(rng, Normal(0, skill_noise), n_people)) .=> observable_skill_names)
     public_params
 end
 
+rng = StableRNG(20240721)
 S = 5
-universal_params = universal_parameters(S)
-G = 3
-group_params = group_parameters(G, universal_params)
-N = 10
-private_params = private_parameters(N, S, group_params)
+p_protected = 0.5
+β_protected = -0.05
+universal_params = universal_parameters(rng, S, p_protected, β_protected)
+G = 10
+group_params = group_parameters(rng, G, universal_params)
+N = 1000
+private_params = private_parameters(rng, N, group_params)
 s = 3
-public_params = public_parameters(private_params, s, 0.1, 0)
+public_params = public_parameters(rng, private_params, s, 0.1, 0)
 ```
 
 Here, we have imagined $\forall i\in\lbrace 1\ldots N\rbrace$, where $g(i)$ is the group of the $i\text{th}$ person. 
@@ -218,43 +251,51 @@ $$
 
 Only some of the skills ($s$ of $S$) are measured, and these with Gaussian noise `skill_noise`. Optionally, one can add in `salary_noise`, but we give the HR team the benefit of the doubt in assigning salary.
 
+We added quite a few things in cleaning this up, which we hope are self-explanatory, like calculating the salary.
 
+```{julia} 
+# log_formula = @formula(val_log_salary ~ 1 + id_group + cind_protected + skill_1 + skill_2 + skill_3) 
+log_formula = term(:val_log_salary) ~ sum(term.((1, :id_group, :cind_protected, [Symbol("skill_$i") for i in 1:s]...)))
+log_model = lm(log_formula, public_params, contrasts = Dict(:id_group => EffectsCoding()))
+```
+
+Let's play with extracting information from this model to work towards building simulations to check the converage of $\beta_{\text{protected}}$.
 
 ```{julia}
-insertcols!(public_skill_data)
+cind_protected = findall(termnames(log_model)[2] .== "cind_protected")
+β_protected_conf = confint(log_model)[cind_protected, :]
+β_protected = universal_params[:, :β_protected][1]
+@show(β_protected, β_protected_conf)
 ```
 
+We'll now create a function that simulates many draws of data and tells us what fraction of times our confidence interval contains the true value. We might expect 95%, but the amount could be modified by the unmeasured variables, so let's check.
 
+```{julia}
+function simulate_models(rng, n_models, S, s, skill_noise)
+    p_protected = 0.5
+    β_protected = -0.05
+    ind_coverage = Vector{Int64}(undef, n_models)
+    for i in 1:n_models
+        # Build data
+        universal_params = universal_parameters(rng, S, p_protected, β_protected)
+        G = 10
+        group_params = group_parameters(rng, G, universal_params)
+        N = 1000
+        private_params = private_parameters(rng, N, group_params)
+        public_params = public_parameters(rng, private_params, s, skill_noise, 0)
+        # Build model
+        log_formula = term(:val_log_salary) ~ sum(term.((1, :id_group, :cind_protected, [Symbol("skill_$i") for i in 1:s]...)))
+        log_model = lm(log_formula, public_params, contrasts = Dict(:id_group => EffectsCoding()))
+        # Extract from model
+        cind_protected = findall(coefnames(log_model) .== "cind_protected")
+        β_protected_conf = confint(log_model)[cind_protected, :]
+        ind_coverage[i] = (β_protected_conf[1] <= β_protected <= β_protected_conf[2]) ? 1 : 0
+    end
+    mean(ind_coverage)
+end
 
-
-
-```{stan}
-data {
-    // Number of observations
-    int<lower=0> N;
-    // Number of latent explanatory features
-    int<lower=0> P;
-    // Number of groups
-    int<lower=0> G;
-    // Size of fuzz
-    real<lower=0> fuzz;
-}
-generated quantities {
-    vector[N] y;
-    matrix[N, P] Latent;
-    matrix[N, P] X;
-    real beta_0;
-    vector[P] beta_latent;
-    beta_0 = normal_rng(10, 1);
-    for (p in 1:P) {
-        beta_latent[p] = normal_rng(0, 1);
-    }
-    for (n in 1:N) {
-        for (p in 1:P) {
-            Latent[n, p] = normal_rng(0, 1);
-            X[n, p] = Latent[n, p] + normal_rng(0, fuzz);
-        }
-        y[n] = normal_rng(beta_0 + Latent[n]*beta_latent, 1);
-    }
-}
+simulate_models(rng, 1000, 5, 3, 0.0)
 ```
+
+This is excellent! Even in the presence of unmeasured information and group heteroscedasticity, our power to infer $\beta_{\text{protected}}$ is quite high, near the expected $1-\alpha=0.95$.
+
